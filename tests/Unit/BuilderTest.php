@@ -67,5 +67,37 @@ final class BuilderTest extends TestCase
                 );
             }
         ];
+
+        yield 'array type' => [
+            [
+                'Foo' => [
+                    'properties' => [
+                        'scalarList' => [
+                            'type' => 'array',
+                            'items' => [
+                                'type' => 'string',
+                            ],
+                        ],
+                        'objectList' => [
+                            'type' => 'array',
+                            'items' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'id' => [
+                                        'type' => 'integer',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 
+            function (ClassModels $models) {
+                self::assertEquals(
+                    'list<string>',
+                    $models->get('Foo')->property('scalarList')->phpType->nativeTypeString()
+                );
+            }
+        ];
     }
 }

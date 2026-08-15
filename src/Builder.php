@@ -10,6 +10,8 @@ use DTL\OapiScg\Model\PropertyModel;
 use DTL\OapiScg\Model\Type\BooleanType;
 use DTL\OapiScg\Model\Type\FloatType;
 use DTL\OapiScg\Model\Type\IntegerType;
+use DTL\OapiScg\Model\Type\ListType;
+use DTL\OapiScg\Model\Type\MixedType;
 use DTL\OapiScg\Model\Type\StringType;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
@@ -99,6 +101,7 @@ class Builder
             'integer' => new IntegerType(),
             'boolean' => new BooleanType(),
             'number' => new FloatType(),
+            'array' => $this->buildArrayType($property),
             default => throw new \RuntimeException(sprintf(
                 'Do not know how to map openapi type: %s',
                 $property->type
@@ -117,5 +120,12 @@ class Builder
                 $schema->getReference()
             ));
         }
+    }
+
+    private function buildArrayType(Schema $property): PhpType
+    {
+        $itemType = $property->items;
+
+        return new ListType($this->buildPhpType($itemType));
     }
 }
