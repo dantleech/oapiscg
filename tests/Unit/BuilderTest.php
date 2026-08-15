@@ -97,6 +97,10 @@ final class BuilderTest extends TestCase
                     'list<string>',
                     $models->get('Foo')->property('scalarList')->phpType->nativeTypeString()
                 );
+                self::assertEquals(
+                    'list<FOOOOO>',
+                    $models->get('Foo')->property('objectList')->phpType->nativeTypeString()
+                );
             }
         ];
     }
