@@ -25,7 +25,7 @@ final class ShapeType extends PhpType
         return sprintf('array{%s}', implode(
             ',',
             array_map(function (string $key, PhpType $type) {
-                return sprintf('%s:%s', $key, $type->nativeTypeString());
+                return sprintf('%s:%s', $key, $type->phpDocString());
             }, array_keys($this->properties), array_values($this->properties))
         ));
     }

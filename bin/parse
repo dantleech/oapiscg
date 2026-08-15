@@ -2,7 +2,10 @@
 <?php
 
 use DTL\OapiScg\Builder;
+use DTL\OapiScg\ClassGenerator;
 use DTL\OapiScg\SchemaFinder;
+use PhpParser\PrettyPrinter;
+use PhpParser\PrettyPrinter\Standard;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -21,8 +24,15 @@ if ($file === null) {
 $finder = SchemaFinder::fromJsonSpec(realpath($file));
 
 
+$printer = new Standard();
 foreach ((new Builder($finder, '', objectAsArray: true))->generate(...$names) as $model) {
-    dump($model->name->toString());
+    $ast = (new ClassGenerator())->generate($model);
+    stdout($printer->prettyPrintFile($ast->stmts));
+}
+
+function stdout(string $message): void
+{
+    fwrite(STDOUT, $message . "\n");
 }
 
 function stderr(string $message): void

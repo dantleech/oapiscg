@@ -10,8 +10,16 @@ final class ListType extends PhpType
     {
     }
 
+    #[\Override]
     public function nativeTypeString(): string
+    {
+        return 'array';
+    }
+
+    public function phpDocString(): string
     {
         return sprintf('list<%s>', $this->type->phpDocString());
     }
+
+    
 }

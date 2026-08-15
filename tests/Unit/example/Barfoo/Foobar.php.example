@@ -1,0 +1,10 @@
+final readonly class Foobar
+{
+    /**
+     * @param string $prop1
+     * @param list<string> $list
+     */
+    function __construct(string $prop1, array $list)
+    {
+    }
+}

@@ -100,12 +100,16 @@ final class BuilderTest extends TestCase
             ], 
             function (ClassModels $models) {
                 self::assertEquals(
-                    'list<string>',
+                    'array',
                     $models->get('Foo')->property('scalarList')->phpType->nativeTypeString()
                 );
                 self::assertEquals(
+                    'list<string>',
+                    $models->get('Foo')->property('scalarList')->phpType->phpDocString()
+                );
+                self::assertEquals(
                     'list<Foo_ObjectList>',
-                    $models->get('Foo')->property('objectList')->phpType->nativeTypeString()
+                    $models->get('Foo')->property('objectList')->phpType->phpDocString()
                 );
             }
         ];
