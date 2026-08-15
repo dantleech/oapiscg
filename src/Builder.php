@@ -15,6 +15,7 @@ use DTL\OapiScg\Model\Type\IntersectionType;
 use DTL\OapiScg\Model\Type\ListType;
 use DTL\OapiScg\Model\Type\MixedType;
 use DTL\OapiScg\Model\Type\NullType;
+use DTL\OapiScg\Model\Type\ShapeType;
 use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\Model\Type\UnionType;
 use cebe\openapi\spec\Reference;
@@ -37,7 +38,11 @@ final class Builder
      */
     private array $modelStack = [];
 
-    public function __construct(private SchemaFinder $finder, private ?string $namespace = null)
+    public function __construct(
+        private SchemaFinder $finder,
+        private ?string $namespace = null,
+        private $objectAsArray = false,
+    )
     {
     }
 
@@ -175,7 +180,10 @@ final class Builder
             'boolean' => new BooleanType(),
             'number' => new FloatType(),
             'array' => $this->buildArrayType($property),
-            'object' => $this->buildObjectType($property),
+            'object' => match ($this->objectAsArray) {
+                true => $this->buildObjectArrayType($property),
+                false => $this->buildObjectType($property),
+            },
             'null' => new NullType(),
             null => new MixedType(),
             default => throw new \RuntimeException(sprintf(
@@ -290,5 +298,14 @@ final class Builder
             ));
         }
         return $model;
+    }
+
+    private function buildObjectArrayType(Schema $property): PhpType
+    {
+        $properties = [];
+        foreach ($property->properties as $name => $property) {
+            $properties[$name] = $this->buildPhpType($property);
+        }
+        return new ShapeType($properties);
     }
 }

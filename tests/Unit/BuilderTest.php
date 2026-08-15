@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 final class BuilderTest extends TestCase
 {
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test): void
+    public function testBuildDTO(array $spec, Closure $test, bool $objectAsArray = false): void
     {
         $test->bindTo($this);
 
@@ -26,13 +26,15 @@ final class BuilderTest extends TestCase
         ];
 
         $models = (new Builder(
-            SchemaFinder::fromJson((string)json_encode($api))
+            SchemaFinder::fromJson((string)json_encode($api)),
+            '',
+            $objectAsArray,
         ))->generateAll();
 
         $test($models);
     }
     /**
-     * @return Generator<array{array<string,array<mixed>>,Closure(ClassModels):void}>
+     * @return Generator<array{array<string,array<mixed>>,Closure(ClassModels):void,2?:bool}>
      */
     public static function provideBuildDTO(): Generator
     {
@@ -152,6 +154,31 @@ final class BuilderTest extends TestCase
                     $models->get($name)->property('id')->phpType->nativeTypeString()
                 );
             }
+        ];
+
+        yield 'object as array' => [
+            [
+                'Foo' => [
+                    'properties' => [
+                        'object' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'id' => [
+                                    'type' => 'integer',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 
+            function (ClassModels $models) {
+                $name = $models->get('Foo')->property('object')->phpType->phpDocString();
+                self::assertEquals(
+                    'array{id:int}',
+                    $name
+                );
+            },
+            true
         ];
 
         yield 'oneOf type' => [
