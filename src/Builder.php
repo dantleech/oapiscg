@@ -275,7 +275,7 @@ final class Builder
 
         $schemaName = array_pop($path);
 
-        $this->build((string)$schemaName);
+        $fuck = $this->build((string)$schemaName);
 
         return new ClassType($this->className($schemaName));
     }

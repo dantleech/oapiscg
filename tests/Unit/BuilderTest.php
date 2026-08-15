@@ -292,5 +292,37 @@ final class BuilderTest extends TestCase
                 self::assertEquals('Baz', $models->get('Bar_Obj1')->property('barfoo')->phpType->nativeTypeString());
             }
         ];
+
+        yield 'model one of' => [
+            [
+                'Bar' => [
+                    'properties' => [
+                        'foo' => [
+                            '$ref' => '#/components/schemas/Foo',
+                        ],
+                    ],
+                ],
+                'Foo' => [
+                    'oneOf' => [
+                        [
+                            'type' => ['string']
+                        ],
+                        [
+                            'type' => ['boolean']
+                        ],
+                    ],
+                ],
+            ],
+            function (ClassModels $models) {
+                // `builder->build()` can probably be removed in favour of resolvePhpType...
+                // ... or at least the class structure be represented in the type system
+                // so that references can resolve to types.
+                self::assertEquals(
+                    'string|bool',
+                    $models->get('Bar')->property('foo')->phpType->nativeTypeString()
+                );
+            }
+        ];
+
     }
 }
