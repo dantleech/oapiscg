@@ -36,4 +36,15 @@ final class FullyQualifiedName
         }
         return sprintf('%s\\%s', $this->namespace(), $this->shortName());
     }
+
+    public static function fromString(string $name): self
+    {
+        if ('' == trim($name)) {
+            throw new \RuntimeException(
+                'Class name cannot be empty'
+            );
+        }
+
+        return new self(explode('\\', trim($name)));
+    }
 }
