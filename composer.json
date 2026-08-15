@@ -8,7 +8,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^13.3",
-        "carthage-software/mago": "^1.46"
+        "carthage-software/mago": "^1.46",
+        "symfony/var-dumper": "^8.1"
     },
     "autoload": {
         "psr-4": {
