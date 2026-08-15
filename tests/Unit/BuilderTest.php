@@ -37,12 +37,14 @@ final class BuilderTest extends TestCase
      */
     public static function provideBuildDTO(): Generator
     {
-        yield [
+        yield 'scalar types' => [
             [
                 'Foo' => [
                     'properties' => [
                         'string' => ['type' => 'string'],
                         'integer' => ['type' => 'integer'],
+                        'number' => ['type' => 'number'],
+                        'boolean' => ['type' => 'boolean'],
                     ],
                 ],
             ], 
@@ -54,6 +56,14 @@ final class BuilderTest extends TestCase
                 self::assertEquals(
                     'int',
                     $models->get('Foo')->property('integer')->phpType->nativeTypeString()
+                );
+                self::assertEquals(
+                    'float',
+                    $models->get('Foo')->property('number')->phpType->nativeTypeString()
+                );
+                self::assertEquals(
+                    'bool',
+                    $models->get('Foo')->property('boolean')->phpType->nativeTypeString()
                 );
             }
         ];

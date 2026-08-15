@@ -7,6 +7,8 @@ use DTL\OapiScg\Model\ClassModels;
 use DTL\OapiScg\Model\FullyQualifiedName;
 use DTL\OapiScg\Model\PhpType;
 use DTL\OapiScg\Model\PropertyModel;
+use DTL\OapiScg\Model\Type\BooleanType;
+use DTL\OapiScg\Model\Type\FloatType;
 use DTL\OapiScg\Model\Type\IntegerType;
 use DTL\OapiScg\Model\Type\StringType;
 use cebe\openapi\spec\Reference;
@@ -95,6 +97,8 @@ class Builder
         return match ($property->type) {
             'string' => new StringType(),
             'integer' => new IntegerType(),
+            'boolean' => new BooleanType(),
+            'number' => new FloatType(),
             default => throw new \RuntimeException(sprintf(
                 'Do not know how to map openapi type: %s',
                 $property->type
