@@ -7,7 +7,7 @@ use DTL\OapiScg\Model\PhpType;
 
 final class ClassType extends PhpType
 {
-    public function __construct(private FullyQualifiedName $name)
+    public function __construct(public FullyQualifiedName $name)
     {
     }
 

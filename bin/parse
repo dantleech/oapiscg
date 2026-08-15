@@ -8,7 +8,11 @@ require __DIR__ . '/../vendor/autoload.php';
 
 ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 
-$file = $argv[1] ?? null;
+
+array_shift($argv);
+$file = array_shift($argv);
+$names = $argv ?? [];
+
 if ($file === null) {
     stderr('No file provided');
     exit(1);
@@ -17,7 +21,9 @@ if ($file === null) {
 $finder = SchemaFinder::fromJsonSpec(realpath($file));
 
 
-dump((new Builder($finder))->generateAll()->get('ConnectBankMatchResult_BankMatchResults'));
+foreach ((new Builder($finder))->generateNames(...$names) as $model) {
+    dump($model->name->toString());
+}
 
 function stderr(string $message): void
 {

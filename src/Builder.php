@@ -20,15 +20,22 @@ use DTL\OapiScg\Model\Type\UnionType;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 
-
-class Builder
+final class Builder
 {
     /**
      * @var array<string,ClassModel>
      */
     private array $resolved = [];
 
+    /**
+     * @var array<string,list<string>>
+     */
     private array $pathStack = [];
+
+    /**
+     * @var list<string>
+     */
+    private array $modelStack = [];
 
     public function __construct(private SchemaFinder $finder, private ?string $namespace = null)
     {
@@ -51,35 +58,49 @@ class Builder
         return ClassModels::fromClassModels(...array_values($resolved));
     }
 
-    private function build(string $name): void
+    private function build(string $name): ClassModel
     {
+        if (isset($this->resolved[$name])) {
+            return $this->resolved[$name];
+        }
+
         $schema = $this->finder->find($name);
 
+        $this->modelStack[] = $name;
         $this->pushPath($name);
         $model = new ClassModel(
-            FullyQualifiedName::fromNamespaceAndName(
-                $this->namespace ?? '',
-                $name
-            ),
+            $this->className($name),
             $this->buildProperties($schema),
         );
         $this->popPath();
+        array_pop($this->modelStack);
         $this->resolved[$name] = $model;
+        return $model;
     }
     /**
-     * @return array<string,PropertyModel>
+     * @return array<array-key,PropertyModel>
      */
     private function buildProperties(Schema|Reference $schema): array
     {
-        $this->assertSchema($schema);
+        if ($schema instanceof Reference) {
+            $type = $this->resolveReferenceClassType($schema);
+            return $this->build($type->name->shortName())->properties;
+        }
+
         if ($schema->allOf !== null) {
             return $this->buildAllOf($schema->allOf);
         }
 
         $properties = [];
         foreach ($schema->properties as $propertyName => $property) {
-            $this->assertSchema($property);
-            $this->pushPath($propertyName);
+            if ($property instanceof Reference) {
+                $properties[(string)$propertyName] = new PropertyModel(
+                    (string)$propertyName,
+                    $this->resolveReferenceClassType($property)
+                );
+            }
+
+            $this->pushPath((string)$propertyName);
             $properties[(string)$propertyName] = new PropertyModel(
                 (string)$propertyName,
                 $this->buildPhpType($property)
@@ -97,6 +118,7 @@ class Builder
     private function buildAllOf(array $schemas): array
     {
         $properties = [];
+
         foreach ($schemas as $schema) {
             $properties = array_merge($properties, $this->buildProperties($schema));
         }
@@ -106,7 +128,10 @@ class Builder
 
     private function buildPhpType(Schema|Reference $property): PhpType
     {
-        $this->assertSchema($property);
+        if ($property instanceof Reference) {
+            return $this->resolveReferenceClassType($property);
+        }
+
         if ($property->oneOf) {
             return new UnionType(
                 array_values(array_map(
@@ -168,7 +193,8 @@ class Builder
     {
         if ($schema instanceof Reference) {
             throw new \RuntimeException(sprintf(
-                'Resolving references not currently supported: %s',
+                'Resolving references not currently supported at "%s": %s',
+                implode('.', $this->pathStack),
                 $schema->getReference()
             ));
         }
@@ -180,8 +206,6 @@ class Builder
         if ($itemType === null) {
             return new ListType(new MixedType());
         }
-        $this->assertSchema($itemType);
-
         return new ListType($this->buildPhpType($itemType));
     }
 
@@ -199,17 +223,26 @@ class Builder
 
     private function pushPath(string $name): void
     {
-        $this->pathStack[] = $name;
+        $model = $this->currentModelName();
+        if (!is_array($this->pathStack[$model] ?? null)) {
+            $this->pathStack[$model] = [];
+        }
+        $this->pathStack[$model][] = $name;
     }
 
     private function popPath(): void
     {
-        array_pop($this->pathStack);
+        $model = $this->currentModelName();
+        if (!is_array($this->pathStack[$model] ?? null)) {
+            return;
+        }
+        array_pop($this->pathStack[$model]);
     }
 
     private function anonymousName(?int $inc = null): string
     {
-        $name = implode('_', array_map(fn (string $path) => ucfirst($path), $this->pathStack));
+        $model = $this->currentModelName();
+        $name = implode('_', array_map(fn (string $path) => ucfirst($path), $this->pathStack[$model] ?? []));
 
         if ($inc !== null) {
             $name .= (string)$inc;
@@ -220,5 +253,42 @@ class Builder
         }
 
         return $name;
+    }
+
+    private function resolveReferenceClassType(Reference $property): ClassType
+    {
+        $path = $property->getJsonReference()->getJsonPointer()->getPath();
+
+        if (array_slice($path, 0, 2) !== ['components', 'schemas']) {
+            throw new \RuntimeException(sprintf(
+                'Unsupported reference: %s',
+                $property->getReference()
+            ));
+        }
+
+        $schemaName = array_pop($path);
+
+        $this->build((string)$schemaName);
+
+        return new ClassType($this->className($schemaName));
+    }
+
+    private function className(string $name): FullyQualifiedName
+    {
+        return FullyQualifiedName::fromNamespaceAndName(
+            $this->namespace ?? '',
+            $name
+        );
+    }
+
+    private function currentModelName(): string
+    {
+        $model = end($this->modelStack) ?: null;
+        if (null === $model) {
+            throw new \RuntimeException(sprintf(
+                'model stack is empty - this should not happen!'
+            ));
+        }
+        return $model;
     }
 }

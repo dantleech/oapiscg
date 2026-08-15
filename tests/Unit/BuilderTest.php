@@ -142,9 +142,14 @@ final class BuilderTest extends TestCase
                 ],
             ], 
             function (ClassModels $models) {
+                $name = $models->get('Foo')->property('object')->phpType->nativeTypeString();
                 self::assertEquals(
                     'Foo_Object',
-                    $models->get('Foo')->property('object')->phpType->nativeTypeString()
+                    $name
+                );
+                self::assertEquals(
+                    'int',
+                    $models->get($name)->property('id')->phpType->nativeTypeString()
                 );
             }
         ];
@@ -206,6 +211,54 @@ final class BuilderTest extends TestCase
                     'Foo_AllOf&Foo_AllOf1',
                     $models->get('Foo')->property('allOf')->phpType->nativeTypeString()
                 );
+            }
+        ];
+
+        yield 'ref object' => [
+            [
+                'Foo' => [
+                    'properties' => [
+                        'object' => [
+                            '$ref' => '#/components/schemas/Bar',
+                        ],
+                    ],
+                ],
+                'Bar' => [
+                    'properties' => [
+                        'obj1' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'foobar' => [
+                                    'type' => 'string'
+                                ],
+                                'barfoo' => [
+                                    '$ref' => '#/components/schemas/Baz'
+                                ],
+                            ],
+                        ]
+                    ],
+                ],
+                'Baz' => [
+                    'properties' => [
+                        'bazzz' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'foobar' => [
+                                    'type' => 'string'
+                                ],
+                            ],
+                        ]
+                    ],
+                ],
+            ], 
+            function (ClassModels $models) {
+                $name = $models->get('Foo')->property('object')->phpType->nativeTypeString();
+                self::assertEquals(
+                    'Bar',
+                    $name
+                );
+                self::assertEquals('Bar_Obj1', $models->get($name)->property('obj1')->phpType->nativeTypeString());
+                self::assertEquals('Baz', $models->get('Bar_Obj1')->property('barfoo')->phpType->nativeTypeString());
             }
         ];
     }

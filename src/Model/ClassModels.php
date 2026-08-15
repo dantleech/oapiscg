@@ -2,7 +2,12 @@
 
 namespace DTL\OapiScg\Model;
 
-final class ClassModels
+use IteratorAggregate;
+use Traversable;
+/**
+ * @implements IteratorAggregate<ClassModel>
+ */
+final class ClassModels implements IteratorAggregate
 {
     /**
      * @param array<array-key, ClassModel> $classes
@@ -32,5 +37,10 @@ final class ClassModels
 
         return $this->classes[$string];
 
+    }
+
+    public function getIterator(): Traversable
+    {
+        return new \ArrayIterator($this->classes);
     }
 }

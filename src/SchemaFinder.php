@@ -20,7 +20,7 @@ final class SchemaFinder
 
     public static function fromJsonSpec(string $path): self
     {
-        return new self(Reader::readFromJsonFile($path));
+        return new self(Reader::readFromJsonFile($path, resolveReferences: 'inline'));
     }
 
     public function find(string $name): Schema
