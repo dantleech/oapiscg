@@ -44,6 +44,7 @@ final class BuilderTest extends TestCase
                         'integer' => ['type' => 'integer'],
                         'number' => ['type' => 'number'],
                         'boolean' => ['type' => 'boolean'],
+                        'null' => ['type' => 'null'],
                     ],
                 ],
             ], 
@@ -63,6 +64,10 @@ final class BuilderTest extends TestCase
                 self::assertEquals(
                     'bool',
                     $models->get('Foo')->property('boolean')->phpType->nativeTypeString()
+                );
+                self::assertEquals(
+                    'null',
+                    $models->get('Foo')->property('null')->phpType->nativeTypeString()
                 );
             }
         ];
@@ -99,6 +104,24 @@ final class BuilderTest extends TestCase
                 self::assertEquals(
                     'list<Foo_ObjectList>',
                     $models->get('Foo')->property('objectList')->phpType->nativeTypeString()
+                );
+            }
+        ];
+
+        yield 'inline union' => [
+            [
+                'Foo' => [
+                    'properties' => [
+                        'inlineUnion' => [
+                            'type' => ['string', 'boolean'],
+                        ],
+                    ],
+                ],
+            ], 
+            function (ClassModels $models) {
+                self::assertEquals(
+                    'string|bool',
+                    $models->get('Foo')->property('inlineUnion')->phpType->nativeTypeString()
                 );
             }
         ];

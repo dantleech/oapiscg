@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+use DTL\OapiScg\Builder;
+use DTL\OapiScg\SchemaFinder;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
+
+$file = $argv[1] ?? null;
+if ($file === null) {
+    stderr('No file provided');
+    exit(1);
+}
+
+$finder = SchemaFinder::fromJsonSpec(realpath($file));
+
+
+dump((new Builder($finder))->generateAll()->get('ConnectBankMatchResult_BankMatchResults'));
+
+function stderr(string $message): void
+{
+    fwrite(STDERR, $message . "\n");
+}

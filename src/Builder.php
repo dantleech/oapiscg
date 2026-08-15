@@ -14,6 +14,7 @@ use DTL\OapiScg\Model\Type\IntegerType;
 use DTL\OapiScg\Model\Type\IntersectionType;
 use DTL\OapiScg\Model\Type\ListType;
 use DTL\OapiScg\Model\Type\MixedType;
+use DTL\OapiScg\Model\Type\NullType;
 use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\Model\Type\UnionType;
 use cebe\openapi\spec\Reference;
@@ -33,7 +34,7 @@ class Builder
     {
     }
 
-    public function generateAll(string ...$names): ClassModels
+    public function generateAll(): ClassModels
     {
         return $this->generateNames(...$this->finder->names());
     }
@@ -106,7 +107,6 @@ class Builder
     private function buildPhpType(Schema|Reference $property): PhpType
     {
         $this->assertSchema($property);
-
         if ($property->oneOf) {
             return new UnionType(
                 array_values(array_map(
@@ -114,13 +114,32 @@ class Builder
                     $property->oneOf
                 ))
             );
-
         }
+
         if ($property->allOf) {
             return new IntersectionType(
                 array_values(array_map(
                     fn (Schema|Reference $schema) => $this->buildPhpType($schema),
                     $property->allOf    
+                ))
+            );
+        }
+        if (is_array($property->type)) {
+            return new UnionType(
+                array_values(array_map(
+                    function (mixed $string) use ($property) {
+                        if (!is_string($string)) {
+                            throw new \RuntimeException(
+                                'Do not know how to deal with non-scalar type here'
+                            );
+                        }
+
+                        $property = new Schema([]);
+                        $property->type = $string;
+
+                        return $this->buildPhpType($property);
+                    },
+                    $property->type
                 ))
             );
         }
@@ -132,9 +151,11 @@ class Builder
             'number' => new FloatType(),
             'array' => $this->buildArrayType($property),
             'object' => $this->buildObjectType($property),
+            'null' => new NullType(),
             null => new MixedType(),
             default => throw new \RuntimeException(sprintf(
-                'Do not know how to map openapi type: %s',
+                'Do not know how to map openapi type "%s": %s',
+                implode('.', $this->pathStack),
                 var_export($property->type, true)
             )),
         };
