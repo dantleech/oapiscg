@@ -29,7 +29,7 @@ final class BuilderTest extends TestCase
             SchemaFinder::fromJson((string)json_encode($api)),
             '',
             $objectAsArray,
-        ))->generateAll();
+        ))->generate();
 
         $test($models);
     }

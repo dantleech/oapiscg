@@ -46,13 +46,12 @@ final class Builder
     {
     }
 
-    public function generateAll(): ClassModels
+    public function generate(string ...$names): ClassModels
     {
-        return $this->generateNames(...$this->finder->names());
-    }
+        if ([] === $names) {
+            $names = $this->finder->names();
+        }
 
-    public function generateNames(string ...$names): ClassModels
-    {
         foreach ($names as $name) {
             $this->build($name);
         }

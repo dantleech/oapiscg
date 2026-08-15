@@ -21,7 +21,7 @@ if ($file === null) {
 $finder = SchemaFinder::fromJsonSpec(realpath($file));
 
 
-foreach ((new Builder($finder))->generateNames(...$names) as $model) {
+foreach ((new Builder($finder, '', objectAsArray: true))->generate(...$names) as $model) {
     dump($model->name->toString());
 }
 

@@ -20,7 +20,14 @@ final class SchemaFinder
 
     public static function fromJsonSpec(string $path): self
     {
-        return new self(Reader::readFromJsonFile($path, resolveReferences: 'inline'));
+        $api = Reader::readFromJsonFile($path, resolveReferences: 'inline');
+        if (!$api instanceof OpenApi) {
+            throw new \RuntimeException(sprintf(
+                'Expected %s got %s',
+                $api::class, get_debug_type($api)
+            ));
+        }
+        return new self($api);
     }
 
     public function find(string $name): Schema
