@@ -13,6 +13,6 @@ final class ClassType extends PhpType
 
     public function nativeTypeString(): string
     {
-        return $this->name->toString();
+        return '\\' . $this->name->toString();
     }
 }

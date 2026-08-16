@@ -8,7 +8,10 @@ require __DIR__ . '/../vendor/autoload.php';
 ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 
 
-array_shift($argv);
+$opts = getopt('n:', [], $stop);
+$namespace = isset($opts['n']) ? $opts['n'] : '';
+
+$argv = array_slice($argv, $stop);
 $file = array_shift($argv);
 $outPath = array_shift($argv);
 $names = $argv ?: [];
@@ -26,7 +29,7 @@ if (substr($outPath, 0, 1) !== '/') {
     $outPath = getcwd() . '/' . $outPath;
 }
 
-$generator = Generator::new($file, $outPath);
+$generator = Generator::new($file, $outPath, namespace: $namespace);
 
 foreach ($generator->generate(...$names) as $report) {
     stderr(sprintf('Written %d to %s', $report->written, $report->path));

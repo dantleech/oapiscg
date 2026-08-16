@@ -1,0 +1,9 @@
+final readonly class WithClassType
+{
+    /**
+     * @param \Foobar\Barfoo $prop1
+     */
+    function __construct(public \Foobar\Barfoo $prop1)
+    {
+    }
+}

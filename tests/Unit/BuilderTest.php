@@ -299,10 +299,10 @@ final class BuilderTest extends TestCase
             function (ClassModels $models) {
                 $type = $models->get('Foo')->property('object')->phpType;
 
-                self::assertEquals('Bar', $type->phpDocString());
+                self::assertEquals('\Bar', $type->phpDocString());
                 self::assertEquals(
-                    'array{foobar:string,barfoo:Baz}',
-                    $models->get($type->phpDocString())->property('obj1')->phpType->phpDocString()
+                    'array{foobar:string,barfoo:\Baz}',
+                    $models->get('Bar')->property('obj1')->phpType->phpDocString()
                 );
             }
         ];
