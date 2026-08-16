@@ -245,6 +245,48 @@ final class BuilderTest extends TestCase
             }
         ];
 
+        yield 'class-level allOf with reference' => [
+            [
+                'Foo' => [
+                    'allOf' => [
+                        [
+                            '$ref' => '#/components/schemas/Bar',
+                        ],
+                        [
+                            'type' => 'object',
+                            'properties' => [
+                                'newField' => [ 'type' => 'integer'],
+                            ],
+                        ],
+                    ],
+                ],
+                'Bar' => [
+                    'allOf' => [
+                        [
+                            '$ref' => '#/components/schemas/Baz',
+                        ],
+                        [
+                            'type' => 'object',
+                            'properties' => [
+                                'bar' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
+                'Baz' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'bar' => ['type' => 'string'],
+                    ],
+                ],
+            ], 
+            function (ClassModels $models) {
+                self::assertEquals('Foo', $models->get('Foo')->name->toString());
+                self::assertEquals('newField', $models->get('Foo')->property('newField')->name);
+            },
+            true
+        ];
+
         yield 'ref object' => [
             [
                 'Foo' => [
