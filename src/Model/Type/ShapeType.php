@@ -20,6 +20,7 @@ final class ShapeType extends PhpType
         return 'array';
     }
 
+    #[\Override]
     public function phpDocString(): string
     {
         return sprintf('array{%s}', implode(

@@ -41,6 +41,7 @@ final class BuilderTest extends TestCase
         yield 'scalar types' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'string' => ['type' => 'string'],
                         'integer' => ['type' => 'integer'],
@@ -77,6 +78,7 @@ final class BuilderTest extends TestCase
         yield 'array type' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'scalarList' => [
                             'type' => 'array',
@@ -108,7 +110,7 @@ final class BuilderTest extends TestCase
                     $models->get('Foo')->property('scalarList')->phpType->phpDocString()
                 );
                 self::assertEquals(
-                    'list<Foo_ObjectList>',
+                    'list<array{id:int}>',
                     $models->get('Foo')->property('objectList')->phpType->phpDocString()
                 );
             }
@@ -117,6 +119,7 @@ final class BuilderTest extends TestCase
         yield 'inline union' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'inlineUnion' => [
                             'type' => ['string', 'boolean'],
@@ -135,6 +138,7 @@ final class BuilderTest extends TestCase
         yield 'anonymous object type' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'object' => [
                             'type' => 'object',
@@ -148,46 +152,18 @@ final class BuilderTest extends TestCase
                 ],
             ], 
             function (ClassModels $models) {
-                $name = $models->get('Foo')->property('object')->phpType->nativeTypeString();
-                self::assertEquals(
-                    'Foo_Object',
-                    $name
-                );
-                self::assertEquals(
-                    'int',
-                    $models->get($name)->property('id')->phpType->nativeTypeString()
-                );
-            }
-        ];
-
-        yield 'object as array' => [
-            [
-                'Foo' => [
-                    'properties' => [
-                        'object' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => [
-                                    'type' => 'integer',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ], 
-            function (ClassModels $models) {
-                $name = $models->get('Foo')->property('object')->phpType->phpDocString();
+                $type = $models->get('Foo')->property('object')->phpType;
                 self::assertEquals(
                     'array{id:int}',
-                    $name
+                    $type->phpDocString()
                 );
-            },
-            true
+            }
         ];
 
         yield 'oneOf type' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'oneOf' => [
                             'oneOf' => [
@@ -217,6 +193,7 @@ final class BuilderTest extends TestCase
         yield 'allOf type' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'allOf' => [
                             'allOf' => [
@@ -239,8 +216,8 @@ final class BuilderTest extends TestCase
             ], 
             function (ClassModels $models) {
                 self::assertEquals(
-                    'Foo_AllOf&Foo_AllOf1',
-                    $models->get('Foo')->property('allOf')->phpType->nativeTypeString()
+                    'array{foo:string,bar:int}',
+                    $models->get('Foo')->property('allOf')->phpType->phpDocString()
                 );
             }
         ];
@@ -283,13 +260,13 @@ final class BuilderTest extends TestCase
             function (ClassModels $models) {
                 self::assertEquals('Foo', $models->get('Foo')->name->toString());
                 self::assertEquals('newField', $models->get('Foo')->property('newField')->name);
-            },
-            true
+            }
         ];
 
         yield 'ref object' => [
             [
                 'Foo' => [
+                    'type' => 'object',
                     'properties' => [
                         'object' => [
                             '$ref' => '#/components/schemas/Bar',
@@ -297,6 +274,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
                 'Bar' => [
+                    'type' => 'object',
                     'properties' => [
                         'obj1' => [
                             'type' => 'object',
@@ -312,6 +290,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
                 'Baz' => [
+                    'type' => 'object',
                     'properties' => [
                         'bazzz' => [
                             'type' => 'object',
@@ -325,11 +304,13 @@ final class BuilderTest extends TestCase
                 ],
             ], 
             function (ClassModels $models) {
-                $name = $models->get('Foo')->property('object')->phpType->nativeTypeString();
+                $type = $models->get('Foo')->property('object')->phpType;
 
-                self::assertEquals('Bar', $name);
-                self::assertEquals('Bar_Obj1', $models->get($name)->property('obj1')->phpType->nativeTypeString());
-                self::assertEquals('Baz', $models->get('Bar_Obj1')->property('barfoo')->phpType->nativeTypeString());
+                self::assertEquals('Bar', $type->phpDocString());
+                self::assertEquals(
+                    'array{foobar:string,barfoo:Baz}',
+                    $models->get($type->phpDocString())->property('obj1')->phpType->phpDocString()
+                );
             }
         ];
 

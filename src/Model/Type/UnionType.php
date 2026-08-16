@@ -21,4 +21,13 @@ final class UnionType extends PhpType
             $this->types
         ));
     }
+
+    #[\Override]
+    public function phpDocString(): string
+    {
+        return implode('|', array_map(
+            fn (PhpType $type) => $type->phpDocString(),
+            $this->types
+        ));
+    }
 }
