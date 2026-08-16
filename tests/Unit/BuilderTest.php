@@ -284,10 +284,8 @@ final class BuilderTest extends TestCase
             ], 
             function (ClassModels $models) {
                 $name = $models->get('Foo')->property('object')->phpType->nativeTypeString();
-                self::assertEquals(
-                    'Bar',
-                    $name
-                );
+
+                self::assertEquals('Bar', $name);
                 self::assertEquals('Bar_Obj1', $models->get($name)->property('obj1')->phpType->nativeTypeString());
                 self::assertEquals('Baz', $models->get('Bar_Obj1')->property('barfoo')->phpType->nativeTypeString());
             }

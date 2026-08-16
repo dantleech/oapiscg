@@ -81,13 +81,20 @@ final class Builder
         $this->resolved[$name] = $model;
         return $model;
     }
+
     /**
      * @return array<array-key,PropertyModel>
      */
     private function buildProperties(Schema|Reference $schema): array
     {
         if ($schema instanceof Reference) {
-            $type = $this->resolveReferenceClassType($schema);
+            $type = $this->resolveReferenceType($schema);
+            if (!$type instanceof ClassType) {
+                throw new \RuntimeException(sprintf(
+                    'Cannot only build properties from %s, got %s',
+                    ClassType::class, $type::class
+                ));
+            }
             return $this->build($type->name->shortName())->properties;
         }
 
@@ -100,7 +107,7 @@ final class Builder
             if ($property instanceof Reference) {
                 $properties[(string)$propertyName] = new PropertyModel(
                     (string)$propertyName,
-                    $this->resolveReferenceClassType($property)
+                    $this->resolveReferenceType($property)
                 );
             }
 
@@ -130,65 +137,77 @@ final class Builder
         return $properties;
     }
 
-    private function buildPhpType(Schema|Reference $property): PhpType
+    private function buildPhpType(Schema|Reference|string $schema): PhpType
     {
-        if ($property instanceof Reference) {
-            return $this->resolveReferenceClassType($property);
+        if (is_string($schema)) {
+            $schemaName = $schema;
+
+            $schema = $this->finder->find($schemaName);
+
+            // if the named schema is an object then it's a class/DTO as
+            // opposed to a potentially structured array.
+            if (count($schema->properties) > 0 || $schema->type === 'object') {
+                return new ClassType($this->className($schemaName));
+            }
         }
 
-        if ($property->oneOf) {
+        if ($schema instanceof Reference) {
+            return $this->resolveReferenceType($schema);
+        }
+
+        if ($schema->oneOf) {
             return new UnionType(
                 array_values(array_map(
                     fn (Schema|Reference $schema) => $this->buildPhpType($schema),
-                    $property->oneOf
+                    $schema->oneOf
                 ))
             );
         }
 
-        if ($property->allOf) {
+        if ($schema->allOf) {
             return new IntersectionType(
                 array_values(array_map(
                     fn (Schema|Reference $schema) => $this->buildPhpType($schema),
-                    $property->allOf    
+                    $schema->allOf    
                 ))
             );
         }
-        if (is_array($property->type)) {
+        if (is_array($schema->type)) {
             return new UnionType(
                 array_values(array_map(
-                    function (mixed $string) use ($property) {
+                    function (mixed $string) use ($schema) {
                         if (!is_string($string)) {
                             throw new \RuntimeException(
                                 'Do not know how to deal with non-scalar type here'
                             );
                         }
 
-                        $property = new Schema([]);
-                        $property->type = $string;
+                        $schema = new Schema([]);
+                        $schema->type = $string;
 
-                        return $this->buildPhpType($property);
+                        return $this->buildPhpType($schema);
                     },
-                    $property->type
+                    $schema->type
                 ))
             );
         }
 
-        return match ($property->type) {
+        return match ($schema->type) {
             'string' => new StringType(),
             'integer' => new IntegerType(),
             'boolean' => new BooleanType(),
             'number' => new FloatType(),
-            'array' => $this->buildArrayType($property),
+            'array' => $this->buildArrayType($schema),
             'object' => match ($this->objectAsArray) {
-                true => $this->buildObjectArrayType($property),
-                false => $this->buildObjectType($property),
+                true => $this->buildObjectArrayType($schema),
+                false => $this->buildObjectType($schema),
             },
             'null' => new NullType(),
             null => new MixedType(),
             default => throw new \RuntimeException(sprintf(
                 'Do not know how to map openapi type "%s": %s',
                 implode('.', $this->pathStack),
-                var_export($property->type, true)
+                var_export($schema->type, true)
             )),
         };
     }
@@ -262,7 +281,7 @@ final class Builder
         return $name;
     }
 
-    private function resolveReferenceClassType(Reference $property): ClassType
+    private function resolveReferenceType(Reference $property): PhpType
     {
         $path = $property->getJsonReference()->getJsonPointer()->getPath();
 
@@ -273,11 +292,18 @@ final class Builder
             ));
         }
 
+        // TODO: better way?
         $schemaName = array_pop($path);
 
-        $fuck = $this->build((string)$schemaName);
+        $type = $this->buildPhpType((string)$schemaName);
 
-        return new ClassType($this->className($schemaName));
+        if ($type instanceof ClassType) {
+            // TODO is this necessary?
+            $model = $this->build((string)$schemaName);
+            return $type;
+        }
+
+        return $type;
     }
 
     private function className(string $name): FullyQualifiedName
