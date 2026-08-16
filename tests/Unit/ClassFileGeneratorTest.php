@@ -9,6 +9,7 @@ use DTL\OapiScg\Model\PropertyModel;
 use DTL\OapiScg\Model\Type\ClassType;
 use DTL\OapiScg\Model\Type\ListType;
 use DTL\OapiScg\Model\Type\StringType;
+use DTL\OapiScg\Model\Value;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -48,6 +49,12 @@ final class ClassFileGeneratorTest extends TestCase
         ];
 
         yield [
+            new ClassModel(FullyQualifiedName::fromString('FoobarWithDefault'), [
+                'string' => new PropertyModel('prop1', new StringType(), new Value('hello!')),
+            ]),
+        ];
+
+        yield [
             new ClassModel(FullyQualifiedName::fromString('WithNamepace\Foobar'), [
                 'string' => new PropertyModel('prop1', new StringType()),
                 'list' => new PropertyModel('list', new ListType(new StringType())),
@@ -57,6 +64,15 @@ final class ClassFileGeneratorTest extends TestCase
         yield [
             new ClassModel(FullyQualifiedName::fromString('WithClassType'), [
                 'class' => new PropertyModel('prop1', new ClassType(FullyQualifiedName::fromString('Foobar\\Barfoo'))),
+            ]),
+        ];
+
+        yield [
+            new ClassModel(FullyQualifiedName::fromString('WithRequiredParamsBeforeOptional'), [
+                'one' => new PropertyModel('one', new StringType(), new Value('')),
+                'two' => new PropertyModel('two', new StringType()),
+                'three' => new PropertyModel('three', new StringType(), new Value('')),
+                'four' => new PropertyModel('four', new StringType()),
             ]),
         ];
     }

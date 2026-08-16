@@ -4,6 +4,7 @@ namespace DTL\OapiScg;
 
 use DTL\OapiScg\Generate\SourceFile;
 use DTL\OapiScg\Model\ClassModel;
+use DTL\OapiScg\Model\PropertyModel;
 use DTL\OapiScg\Model\Type\ClassType;
 use PhpParser\Builder;
 use PhpParser\Node\Name;
@@ -31,8 +32,10 @@ final class ClassFileGenerator
     {
         $class = new Builder\Class_($model->name->shortName());
         $class->makeFinal();
+        // $class->extend('\\Spatie\\LaravelData\\Data');
         $ctor = new Builder\Method('__construct');
-        foreach ($model->properties as $property) {
+
+        foreach ($this->orderProperties($model->properties) as $property) {
             $parameter = new Builder\Param($property->name);
             $parameter->makePublic();
             $propertyType = $property->phpType;
@@ -58,5 +61,19 @@ final class ClassFileGenerator
         $comment[] = ' */';
         return implode("\n", $comment);
 
+    }
+
+    /**
+     * @param array<array-key,PropertyModel> $properties
+     * @return array<array-key,PropertyModel>
+     */
+    private function orderProperties(array $properties): array
+    {
+        // ensure that required properties (i.e. those without default values)
+        // are positioned before optional ones (ones that do have default values).
+        usort($properties, function (PropertyModel $property1, PropertyModel $property2) {
+            return $property1->default === null ? -1 : 1;
+        });
+        return $properties;
     }
 }
