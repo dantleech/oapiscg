@@ -120,7 +120,7 @@ final class Builder
             }, []));
         }
 
-        // the type is a lie
+        // the type is a lie, if it's an array build a union
         // @mago-expect analyzer:impossible-condition,impossible-type-comparison
         if (is_array($schema->type)) {
             return new UnionType(

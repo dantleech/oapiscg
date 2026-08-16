@@ -44,7 +44,7 @@ final class ClassFileGenerator
             $class->setDocComment(implode("\n", $comment));
         }
 
-        // $class->extend('\\Spatie\\LaravelData\\Data');
+        //$class->extend('\\Spatie\\LaravelData\\Data');
         $ctor = new Builder\Method('__construct');
 
         foreach ($this->orderProperties($model->properties) as $property) {
