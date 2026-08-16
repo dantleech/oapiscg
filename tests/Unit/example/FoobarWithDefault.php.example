@@ -1,8 +1,5 @@
 final class FoobarWithDefault
 {
-    /**
-     * @param string $prop1
-     */
     function __construct(public string $prop1 = 'hello!')
     {
     }

@@ -10,7 +10,7 @@ final class ClassModel
     /**
      * @param array<array-key,PropertyModel> $properties
      */
-    public function __construct(public FullyQualifiedName $name, public array $properties)
+    public function __construct(public FullyQualifiedName $name, public array $properties, public ?string $description = null)
     {
     }
 

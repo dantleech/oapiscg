@@ -35,6 +35,15 @@ final class ClassFileGenerator
     {
         $class = new Builder\Class_($model->name->shortName());
         $class->makeFinal();
+
+        $comment = [];
+        if ($model->description !== null) {
+            $comment[] = '/**';
+            $comment[] = sprintf(' * %s', $model->description);
+            $comment[] = ' */';
+            $class->setDocComment(implode("\n", $comment));
+        }
+
         // $class->extend('\\Spatie\\LaravelData\\Data');
         $ctor = new Builder\Method('__construct');
 
@@ -49,18 +58,36 @@ final class ClassFileGenerator
             $ctor->addParam($parameter);
         
         }
-        $ctor->setDocComment($this->ctorDocComment($model));
+        $ctorDocComment = $this->ctorDocComment($model);
+
+        if ($ctorDocComment !== null) {
+            $ctor->setDocComment($ctorDocComment);
+        }
+
         $class->addStmt($ctor);
         
         return $class->getNode();
     }
 
-    private function ctorDocComment(ClassModel $model): string
+    private function ctorDocComment(ClassModel $model): ?string
     {
         $comment = ['/**'];
         foreach ($model->properties as $property) {
-            $comment[] = sprintf(' * @param %s $%s', $property->phpType->phpDocString(), $property->name);
+            if ($property->phpType->phpDocString() === $property->phpType->nativeTypeString() && $property->description === null) {
+                continue;
+            }
+            $comment[] = sprintf(
+                ' * @param %s $%s%s',
+                $property->phpType->phpDocString(),
+                $property->name,
+                $property->description ? ' ' . $property->description : '',
+            );
         }
+
+        if (count($comment) === 1) {
+            return null;
+        }
+
         $comment[] = ' */';
         return implode("\n", $comment);
 

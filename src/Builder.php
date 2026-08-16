@@ -42,7 +42,8 @@ final class Builder
 
         $models = [];
         foreach ($names as $name) {
-            $type = $this->buildPhpType($name);
+            $schema = $this->finder->find($name);
+            $type = $this->buildPhpType($schema);
             $default = null;
 
             if (!$type instanceof ShapeType) {
@@ -69,7 +70,8 @@ final class Builder
                         array_keys($type->properties),
                         array_values($type->properties)
                     )
-                )
+                ),
+                description: $schema->description,
             );
         }
 

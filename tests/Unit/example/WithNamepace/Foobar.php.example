@@ -3,7 +3,6 @@ namespace WithNamepace;
 final class Foobar
 {
     /**
-     * @param string $prop1
      * @param list<string> $list
      */
     function __construct(public string $prop1, public array $list)

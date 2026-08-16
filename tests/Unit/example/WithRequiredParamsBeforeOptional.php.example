@@ -1,11 +1,5 @@
 final class WithRequiredParamsBeforeOptional
 {
-    /**
-     * @param string $one
-     * @param string $two
-     * @param string $three
-     * @param string $four
-     */
     function __construct(public string $two, public string $four, public string $three = '', public string $one = '')
     {
     }

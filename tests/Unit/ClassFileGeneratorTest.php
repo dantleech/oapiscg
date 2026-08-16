@@ -78,5 +78,11 @@ final class ClassFileGeneratorTest extends TestCase
                 'four' => new PropertyModel('four', new StringType()),
             ]),
         ];
+
+        yield [
+            new ClassModel(FullyQualifiedName::fromString('WithDescribedParameter'), [
+                'one' => new PropertyModel('one', new StringType(), description: 'this is a thing'),
+            ], description: 'This is a class'),
+        ];
     }
 }

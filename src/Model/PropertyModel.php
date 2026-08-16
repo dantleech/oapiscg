@@ -10,7 +10,8 @@ final class PropertyModel
     public function __construct(
         public string $name,
         public PhpType $phpType,
-        public ?Value $default = null
+        public ?Value $default = null,
+        public ?string $description = null,
     )
     {
     }
