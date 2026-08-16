@@ -20,6 +20,7 @@ use DTL\OapiScg\Model\Type\UnionType;
 use PhpParser\Builder\Property;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
+use function PHPUnit\Framework\throwException;
 
 final class Builder
 {
@@ -96,6 +97,12 @@ final class Builder
         if ($schema->allOf) {
             return new ShapeType(array_reduce($schema->allOf, function (array $properties, Schema|Reference $s) {
                 $type = $this->buildPhpType($s);
+
+                // if this is a class type, convert it to a shape
+                if ($type instanceof ClassType) {
+                    $type = $this->buildPhpType($type->name->shortName());
+                }
+
                 if (!$type instanceof ShapeType) {
                     throw new \RuntimeException(sprintf(
                         'allOf can only used on object (shape) types, resolved: %s',
@@ -130,6 +137,21 @@ final class Builder
             );
         }
 
+        // if the type is missing, try and guess it
+        // @mago-expect analysis:redundant-comparison,impossible-condition
+        if ($schema->type === null) {
+            if (count($schema->properties) > 0) {
+                $schema->type = 'object';
+            }
+            if ($schema->items !== null) {
+                $schema->type = 'array';
+            }
+
+            if ($schema->enum) {
+                return UnionType::fromValues($schema->enum);
+            }
+        }
+
         return match ($schema->type) {
             'string' => new StringType(),
             'integer' => new IntegerType(),
@@ -138,11 +160,9 @@ final class Builder
             'array' => $this->buildArrayType($schema),
             'object' => $this->buildShape($schema),
             'null' => new NullType(),
-            null => new MixedType(),
             default => throw new \RuntimeException(sprintf(
-                'Do not know how to map openapi type "%s": %s',
-                $this->currentPath(),
-                var_export($schema->type, true)
+                'Do not know how to map openapi schema: %s',
+                var_export($schema->getRawSpecData(), true)
             )),
         };
     }

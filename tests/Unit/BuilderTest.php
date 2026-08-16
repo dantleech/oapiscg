@@ -171,10 +171,6 @@ final class BuilderTest extends TestCase
                                 ['type' => 'integer'],
                             ],
                         ],
-                        'emptyOneOf' => [
-                            'oneOf' => [
-                            ],
-                        ],
                     ],
                 ],
             ], 
@@ -182,10 +178,6 @@ final class BuilderTest extends TestCase
                 self::assertEquals(
                     'string|int',
                     $models->get('Foo')->property('oneOf')->phpType->nativeTypeString()
-                );
-                self::assertEquals(
-                    'mixed',
-                    $models->get('Foo')->property('emptyOneOf')->phpType->nativeTypeString()
                 );
             }
         ];
@@ -317,6 +309,7 @@ final class BuilderTest extends TestCase
         yield 'model one of' => [
             [
                 'Bar' => [
+                    'type' => 'object',
                     'properties' => [
                         'foo' => [
                             '$ref' => '#/components/schemas/Foo',
@@ -345,5 +338,36 @@ final class BuilderTest extends TestCase
             }
         ];
 
+
+        yield 'enum' => [
+            [
+                'Bar' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'missingTypeEnum' => [
+                            'enum' => [
+                                'foo',
+                                'bar',
+                            ],
+                        ],
+                        'typeNum' => [
+                            'type' => 'integer',
+                            'enum' => [
+                                'foo',
+                                'bar',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            function (ClassModels $models) {
+                $type = $models->get('Bar')->property('missingTypeEnum')->phpType;
+                self::assertEquals('string', $type->nativeTypeString());
+                self::assertEquals('"foo"|"bar"', $type->phpDocString());
+
+                // wrong type but its the one it declared
+                self::assertEquals('int', $models->get('Bar')->property('typeNum')->phpType->nativeTypeString());
+            }
+        ];
     }
 }
