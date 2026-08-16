@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
 use DTL\OapiScg\Model\ClassModel;
@@ -51,7 +54,7 @@ final class Builder
                 array_combine(
                     array_keys($type->properties),
                     array_map(
-                        function (string $name, PhpType $type) {
+                        static function (string $name, PhpType $type) {
                             $default = null;
                             if ($type instanceof OptionalType) {
                                 $type = $type->type;
@@ -86,7 +89,7 @@ final class Builder
         if ($schema->oneOf) {
             return new UnionType(
                 array_values(array_map(
-                    fn (Schema|Reference $schema) => $this->buildPhpType($schema),
+                    $this->buildPhpType(...),
                     $schema->oneOf
                 ))
             );
@@ -115,6 +118,8 @@ final class Builder
             }, []));
         }
 
+        // the type is a lie
+        // @mago-expect analyzer:impossible-condition,impossible-type-comparison
         if (is_array($schema->type)) {
             return new UnionType(
                 array_values(array_map(
@@ -130,6 +135,7 @@ final class Builder
 
                         return $this->buildPhpType($schema);
                     },
+                    // @mago-expect analyzer:no-value
                     $schema->type
                 ))
             );
@@ -146,7 +152,7 @@ final class Builder
             }
 
             if ($schema->enum) {
-                return UnionType::fromValues($schema->enum);
+                return UnionType::fromValues(array_values($schema->enum));
             }
         }
 
@@ -163,20 +169,6 @@ final class Builder
                 var_export($schema->getRawSpecData(), true)
             )),
         };
-    }
-
-    /**
-     * @phpstan-assert Schema $schema
-     */
-    private function _assertSchema(Schema|Reference $schema): void
-    {
-        if ($schema instanceof Reference) {
-            throw new \RuntimeException(sprintf(
-                'Resolving references not currently supported at "%s": %s',
-                $this->currentPath(),
-                $schema->getReference()
-            ));
-        }
     }
 
     private function buildArrayType(Schema $property): PhpType
@@ -199,10 +191,9 @@ final class Builder
             ));
         }
 
-        // TODO: better way?
-        $schemaName = array_pop($path);
+        $schemaName = (string)array_pop($path);
 
-        $type = $this->buildPhpType((string)$schemaName);
+        $type = $this->buildPhpType($schemaName);
 
         if ($type instanceof ShapeType) {
             return new ClassType($this->className($schemaName));
@@ -219,23 +210,13 @@ final class Builder
         );
     }
 
-    private function _currentModelName(): string
-    {
-        $model = end($this->modelStack) ?: null;
-        if (null === $model) {
-            throw new \RuntimeException(sprintf(
-                'model stack is empty - this should not happen!'
-            ));
-        }
-        return $model;
-    }
-
     private function buildShape(Schema $schema): PhpType
     {
         $properties = [];
         foreach ($schema->properties as $name => $property) {
             $phpType = $this->buildPhpType($property);
 
+            // @mago-expect analyzer:redundant-null-coalesce
             if (false === in_array($name, $schema->required ?? [], true)) {
                 $phpType = new OptionalType($phpType->makeNullable());
             }

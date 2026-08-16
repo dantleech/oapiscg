@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg\Tests\Unit;
 
 use DTL\OapiScg\ClassFileGenerator;
@@ -31,12 +34,12 @@ final class ClassFileGeneratorTest extends TestCase
 
         if (!file_exists($name)) {
             $fs->dumpFile($name, $printed);
-            $this->markTestSkipped('Snapshot generated');
+            static::markTestSkipped('Snapshot generated');
         }
 
         $expected = (string)file_get_contents($name);
 
-        self::assertEquals($expected, $printed);
+        static::assertEquals($expected, $printed);
     }
 
     public static function provideGenerate(): Generator

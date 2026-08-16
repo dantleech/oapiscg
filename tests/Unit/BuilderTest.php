@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg\Tests\Unit;
 
 use Closure;
@@ -52,7 +55,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     '?string',
                     $models->get('Foo')->property('string')->phpType->nativeTypeString()
@@ -101,7 +104,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     '?array',
                     $models->get('Foo')->property('scalarList')->phpType->nativeTypeString()
@@ -129,7 +132,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     'string|bool',
                     $models->get('Foo')->property('inlineUnion')->phpType->nativeTypeString()
@@ -153,7 +156,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Foo')->property('object')->phpType;
                 self::assertEquals(
                     '?array{id:?int}',
@@ -176,7 +179,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     'string|int|null',
                     $models->get('Foo')->property('oneOf')->phpType->nativeTypeString()
@@ -211,7 +214,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     'array{foo:string,bar:int}',
                     $models->get('Foo')->property('allOf')->phpType->phpDocString()
@@ -254,7 +257,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals('Foo', $models->get('Foo')->name->toString());
                 self::assertEquals('newField', $models->get('Foo')->property('newField')->name);
             }
@@ -300,7 +303,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Foo')->property('object')->phpType;
 
                 self::assertEquals('?\Bar', $type->phpDocString());
@@ -332,7 +335,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ],
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 // `builder->build()` can probably be removed in favour of resolvePhpType...
                 // ... or at least the class structure be represented in the type system
                 // so that references can resolve to types.
@@ -365,7 +368,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ],
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Bar')->property('missingTypeEnum')->phpType;
                 self::assertEquals('string', $type->nativeTypeString());
                 self::assertEquals('"foo"|"bar"', $type->phpDocString());
@@ -397,7 +400,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ],
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Bar')->property('prop1')->phpType;
                 self::assertEquals('string', $type->nativeTypeString());
             }

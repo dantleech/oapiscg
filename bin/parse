@@ -7,7 +7,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 
-
 $opts = getopt('n:', [], $stop);
 $namespace = isset($opts['n']) ? $opts['n'] : '';
 
@@ -23,10 +22,6 @@ if ($file === null) {
 if ($outPath === null) {
     stderr('No outpath provided');
     exit(1);
-}
-
-if (substr($outPath, 0, 1) !== '/') {
-    $outPath = getcwd() . '/' . $outPath;
 }
 
 $generator = Generator::new($file, $outPath, namespace: $namespace);

@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
-use DTL\OapiScg\Builder;
+
 use Generator as PhpGenerator;
 use PhpParser\PrettyPrinter\Standard;
 
@@ -31,6 +34,15 @@ final class Generator
                 ));
             }
         }
+
+        if (substr($outputPath, 0, 1) !== '/') {
+            $cwd = getcwd();
+            if (false === $cwd) {
+                throw new \RuntimeException('Could not resolve CWD');
+            }
+            $outputPath = $cwd . '/' . $outputPath;
+        }
+
         $finder = SchemaFinder::fromJsonSpec($openApiUri);
 
         $builder = new Builder($finder, $namespace);

@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg\Model\Type;
 
 use DTL\OapiScg\Model\PhpType;
-use DTL\OapiScg\Model\PropertyModel;
+
 
 final class ShapeType extends PhpType
 {
@@ -25,9 +28,7 @@ final class ShapeType extends PhpType
     {
         return sprintf('array{%s}', implode(
             ',',
-            array_map(function (string $key, PhpType $type) {
-                return sprintf('%s:%s', $key, $type->phpDocString());
-            }, array_keys($this->properties), array_values($this->properties))
+            array_map(static fn (string $key, PhpType $type) => sprintf('%s:%s', $key, $type->phpDocString()), array_keys($this->properties), array_values($this->properties))
         ));
     }
 }

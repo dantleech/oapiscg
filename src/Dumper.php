@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
 use DTL\OapiScg\Generate\SourceFile;
@@ -16,7 +19,7 @@ final class Dumper
         $path = sprintf('%s/%s.php', $this->outputPath, $file->name);
         $content = $this->printer->prettyPrintFile($file->stmts);
         if (!file_exists(dirname($path))) {
-            if (false === mkdir(dirname($path), 0744, true)) {
+            if (false === mkdir(dirname($path), 0o744, true)) {
                 throw new \RuntimeException(sprintf(
                     'Could not created directory: %s',
                     dirname($path)

@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg\Model\Type;
 
 use DTL\OapiScg\Model\PhpType;
@@ -25,7 +28,7 @@ final class UnionType extends PhpType
 
         $types = array_combine(
             array_map(
-                fn (PhpType $type) => $type->$method(),
+                static fn (PhpType $type) => $type->$method(),
                 $this->types
             ),
             array_values($this->types),
@@ -40,7 +43,7 @@ final class UnionType extends PhpType
         }
 
         return implode('|', array_map(
-            fn (PhpType $type) => $type->$method(),
+            static fn (PhpType $type) => $type->$method(),
             $types
         ));
     }
@@ -55,12 +58,10 @@ final class UnionType extends PhpType
      */
     public static function fromValues(array $values): self
     {
-        $types = array_map(function (mixed $value) {
-            return match (get_debug_type($value)) {
+        $types = array_map(static fn (mixed $value) => match (get_debug_type($value)) {
                 'string' => new StringLiteralType((string)$value),
                 default => new MixedType(),
-            };
-        }, $values);
+            }, $values);
 
         return new self($types);
     }

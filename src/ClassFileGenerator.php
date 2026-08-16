@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
 use DTL\OapiScg\Generate\SourceFile;
 use DTL\OapiScg\Model\ClassModel;
 use DTL\OapiScg\Model\PropertyModel;
-use DTL\OapiScg\Model\Type\ClassType;
+
 use PhpParser\Builder;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
@@ -71,9 +74,7 @@ final class ClassFileGenerator
     {
         // ensure that required properties (i.e. those without default values)
         // are positioned before optional ones (ones that do have default values).
-        usort($properties, function (PropertyModel $property1, PropertyModel $property2) {
-            return $property1->default === null ? -1 : 1;
-        });
+        usort($properties, static fn (PropertyModel $property1, PropertyModel $property2) => $property1->default === null ? -1 : 1);
         return $properties;
     }
 }
