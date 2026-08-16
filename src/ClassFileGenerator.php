@@ -7,14 +7,14 @@ use DTL\OapiScg\Model\ClassModel;
 use PhpParser\Builder;
 use PhpParser\Node\Stmt\Class_;
 
-final class ClassGenerator
+final class ClassFileGenerator
 {
     public function generate(ClassModel $model): SourceFile
     {
         $stmts = [];
         $stmts[] = $this->generateClass($model);
 
-        return new SourceFile($stmts);
+        return new SourceFile($model->name->shortName(), $stmts);
     }
 
     private function generateClass(ClassModel $model): Class_
@@ -25,6 +25,7 @@ final class ClassGenerator
         $ctor = new Builder\Method('__construct');
         foreach ($model->properties as $property) {
             $parameter = new Builder\Param($property->name);
+            $parameter->makePublic();
             $parameter->setType($property->phpType->nativeTypeString());
             $ctor->addParam($parameter);
         
@@ -35,7 +36,7 @@ final class ClassGenerator
         return $class->getNode();
     }
 
-    private function ctorDocComment(ClassModel $model)
+    private function ctorDocComment(ClassModel $model): string
     {
         $comment = ['/**'];
         foreach ($model->properties as $property) {

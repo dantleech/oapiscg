@@ -12,11 +12,13 @@ use PHPUnit\Framework\TestCase;
 
 final class BuilderTest extends TestCase
 {
+    /**
+     * @param array<int,mixed> $spec
+     * @param Closure(ClassModels): void $test
+     */
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test, bool $objectAsArray = false): void
+    public function testBuildDTO(array $spec, Closure $test): void
     {
-        $test->bindTo($this);
-
         $api = [
             'openapi' => '3.0.0',
             'info' => [],
@@ -27,8 +29,7 @@ final class BuilderTest extends TestCase
 
         $models = (new Builder(
             SchemaFinder::fromJson((string)json_encode($api)),
-            '',
-            $objectAsArray,
+            ''
         ))->generate();
 
         $test($models);

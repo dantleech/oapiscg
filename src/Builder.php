@@ -24,21 +24,6 @@ use function PHPUnit\Framework\throwException;
 
 final class Builder
 {
-    /**
-     * @var array<string,ClassModel>
-     */
-    private array $resolved = [];
-
-    /**
-     * @var array<string,list<string>>
-     */
-    private array $pathStack = [];
-
-    /**
-     * @var list<string>
-     */
-    private array $modelStack = [];
-
     public function __construct(
         private SchemaFinder $finder,
         private ?string $namespace = null,
@@ -170,7 +155,7 @@ final class Builder
     /**
      * @phpstan-assert Schema $schema
      */
-    private function assertSchema(Schema|Reference $schema): void
+    private function _assertSchema(Schema|Reference $schema): void
     {
         if ($schema instanceof Reference) {
             throw new \RuntimeException(sprintf(
@@ -221,7 +206,7 @@ final class Builder
         );
     }
 
-    private function currentModelName(): string
+    private function _currentModelName(): string
     {
         $model = end($this->modelStack) ?: null;
         if (null === $model) {

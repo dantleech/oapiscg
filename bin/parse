@@ -1,10 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-use DTL\OapiScg\Builder;
-use DTL\OapiScg\ClassGenerator;
-use DTL\OapiScg\SchemaFinder;
-use PhpParser\PrettyPrinter\Standard;
+use DTL\OapiScg\Generator;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -13,20 +10,26 @@ ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 
 array_shift($argv);
 $file = array_shift($argv);
-$names = $argv ?? [];
+$outPath = array_shift($argv);
+$names = $argv ?: [];
 
 if ($file === null) {
     stderr('No file provided');
     exit(1);
 }
+if ($outPath === null) {
+    stderr('No outpath provided');
+    exit(1);
+}
 
-$finder = SchemaFinder::fromJsonSpec(realpath($file));
+if (substr($outPath, 0, 1) !== '/') {
+    $outPath = getcwd() . '/' . $outPath;
+}
 
+$generator = Generator::new($file, $outPath);
 
-$printer = new Standard();
-foreach ((new Builder($finder, ''))->generate(...$names) as $model) {
-    $ast = (new ClassGenerator())->generate($model);
-    stdout($printer->prettyPrintFile($ast->stmts));
+foreach ($generator->generate(...$names) as $report) {
+    stderr(sprintf('Written %d to %s', $report->written, $report->path));
 }
 
 function stdout(string $message): void

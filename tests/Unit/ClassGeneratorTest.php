@@ -2,7 +2,7 @@
 
 namespace DTL\OapiScg\Tests\Unit;
 
-use DTL\OapiScg\ClassGenerator;
+use DTL\OapiScg\ClassFileGenerator;
 use DTL\OapiScg\Model\ClassModel;
 use DTL\OapiScg\Model\FullyQualifiedName;
 use DTL\OapiScg\Model\PropertyModel;
@@ -20,7 +20,7 @@ final class ClassGeneratorTest extends TestCase
     public function testGenerate(ClassModel $model):  void
     {
         $fs = new Filesystem();
-        $file = (new ClassGenerator())->generate($model);
+        $file = (new ClassFileGenerator())->generate($model);
 
         $printer = new Standard([]);
 
