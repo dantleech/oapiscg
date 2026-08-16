@@ -34,7 +34,7 @@ final class Generator
         $finder = SchemaFinder::fromJsonSpec($openApiUri);
 
         $builder = new Builder($finder, $namespace);
-        $generator = new ClassFileGenerator($namespace);
+        $generator = new ClassFileGenerator();
         $dumper = new Dumper(new Standard(), $outputPath);
 
         return new self($builder, $generator, $dumper);

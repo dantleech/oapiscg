@@ -14,9 +14,11 @@ use DTL\OapiScg\Model\Type\IntegerType;
 use DTL\OapiScg\Model\Type\ListType;
 use DTL\OapiScg\Model\Type\MixedType;
 use DTL\OapiScg\Model\Type\NullType;
+use DTL\OapiScg\Model\Type\OptionalType;
 use DTL\OapiScg\Model\Type\ShapeType;
 use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\Model\Type\UnionType;
+use DTL\OapiScg\Model\Value;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 
@@ -38,6 +40,8 @@ final class Builder
         $models = [];
         foreach ($names as $name) {
             $type = $this->buildPhpType($name);
+            $default = null;
+
             if (!$type instanceof ShapeType) {
                 continue;
             }
@@ -48,9 +52,15 @@ final class Builder
                     array_keys($type->properties),
                     array_map(
                         function (string $name, PhpType $type) {
+                            $default = null;
+                            if ($type instanceof OptionalType) {
+                                $type = $type->type;
+                                $default = new Value(null);
+                            }
                             return new PropertyModel(
                                 $name,
                                 $type,
+                                $default,
                             );
                         },
                         array_keys($type->properties),
@@ -66,9 +76,7 @@ final class Builder
     private function buildPhpType(Schema|Reference|string $schema): PhpType
     {
         if (is_string($schema)) {
-            $schemaName = $schema;
-
-            $schema = $this->finder->find($schemaName);
+            $schema = $this->finder->find($schema);
         }
 
         if ($schema instanceof Reference) {
@@ -222,11 +230,17 @@ final class Builder
         return $model;
     }
 
-    private function buildShape(Schema $property): PhpType
+    private function buildShape(Schema $schema): PhpType
     {
         $properties = [];
-        foreach ($property->properties as $name => $property) {
-            $properties[(string)$name] = $this->buildPhpType($property);
+        foreach ($schema->properties as $name => $property) {
+            $phpType = $this->buildPhpType($property);
+
+            if (false === in_array($name, $schema->required ?? [], true)) {
+                $phpType = new OptionalType($phpType->makeNullable());
+            }
+
+            $properties[(string)$name] = $phpType;
         }
         return new ShapeType($properties);
     }

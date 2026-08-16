@@ -37,6 +37,9 @@ final class ClassFileGenerator
             $parameter->makePublic();
             $propertyType = $property->phpType;
             $parameter->setType($propertyType->nativeTypeString());
+            if ($property->default !== null) {
+                $parameter->setDefault($property->default->value);
+            }
             $ctor->addParam($parameter);
         
         }
