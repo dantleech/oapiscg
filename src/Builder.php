@@ -17,10 +17,8 @@ use DTL\OapiScg\Model\Type\NullType;
 use DTL\OapiScg\Model\Type\ShapeType;
 use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\Model\Type\UnionType;
-use PhpParser\Builder\Property;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
-use function PHPUnit\Framework\throwException;
 
 final class Builder
 {
@@ -40,19 +38,26 @@ final class Builder
         $models = [];
         foreach ($names as $name) {
             $type = $this->buildPhpType($name);
-            if ($type instanceof ShapeType) {
-                $models[] = new ClassModel(
-                    $this->className($name),
-                    array_combine(
-                        array_keys($type->properties),
-                        array_map(
-                            function (string $name, PhpType $type) {return new PropertyModel($name, $type);},
-                            array_keys($type->properties),
-                            array_values($type->properties)
-                        )
-                    )
-                );
+            if (!$type instanceof ShapeType) {
+                continue;
             }
+
+            $models[] = new ClassModel(
+                $this->className($name),
+                array_combine(
+                    array_keys($type->properties),
+                    array_map(
+                        function (string $name, PhpType $type) {
+                            return new PropertyModel(
+                                $name,
+                                $type,
+                            );
+                        },
+                        array_keys($type->properties),
+                        array_values($type->properties)
+                    )
+                )
+            );
         }
 
         return ClassModels::fromClassModels(...$models);

@@ -31,7 +31,6 @@ final class ClassFileGenerator
     {
         $class = new Builder\Class_($model->name->shortName());
         $class->makeFinal();
-        $class->makeReadonly();
         $ctor = new Builder\Method('__construct');
         foreach ($model->properties as $property) {
             $parameter = new Builder\Param($property->name);

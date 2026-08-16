@@ -11,6 +11,7 @@ final class ClassType extends PhpType
     {
     }
 
+    #[\Override]
     public function nativeTypeString(): string
     {
         return '\\' . $this->name->toString();

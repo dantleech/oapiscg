@@ -4,7 +4,7 @@ namespace DTL\OapiScg\Model;
 
 final class PropertyModel
 {
-    public function __construct(public string $name, public PhpType $phpType)
+    public function __construct(public string $name, public PhpType $phpType, public ?Value $value = null)
     {
     }
 

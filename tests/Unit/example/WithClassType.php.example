@@ -1,4 +1,4 @@
-final readonly class WithClassType
+final class WithClassType
 {
     /**
      * @param \Foobar\Barfoo $prop1

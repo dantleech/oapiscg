@@ -1,4 +1,4 @@
-final readonly class Foobar
+final class Foobar
 {
     /**
      * @param string $prop1
