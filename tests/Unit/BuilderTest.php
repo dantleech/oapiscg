@@ -308,6 +308,56 @@ final class BuilderTest extends TestCase
             static function (ClassModels $models) {
                 $type = $models->get('Foo')->property('object')->phpType;
 
+                self::assertEquals('?\Foo\Object', $type->phpDocString());
+                self::assertEquals('?\Bar\Obj1', $models->get('Bar')->property('obj1')->phpType->phpDocString());
+                self::assertEquals('Baz', $models->get('Bar\Obj1')->property('barfoo')->phpType->phpDocString());
+            },
+            10
+        ];
+
+        yield 'ref object inline' => [
+            [
+                'Foo' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'object' => [
+                            '$ref' => '#/components/schemas/Bar',
+                        ],
+                    ],
+                ],
+                'Bar' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'obj1' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'foobar' => [
+                                    'type' => 'string'
+                                ],
+                                'barfoo' => [
+                                    '$ref' => '#/components/schemas/Baz'
+                                ],
+                            ],
+                        ]
+                    ],
+                ],
+                'Baz' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'bazzz' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'foobar' => [
+                                    'type' => 'string'
+                                ],
+                            ],
+                        ]
+                    ],
+                ],
+            ], 
+            static function (ClassModels $models) {
+                $type = $models->get('Foo')->property('object')->phpType;
+
                 self::assertEquals('?\Bar', $type->phpDocString());
                 self::assertEquals(
                     '?array{foobar:?string,barfoo:?\Baz}',
@@ -463,6 +513,29 @@ final class BuilderTest extends TestCase
         ];
 
         yield 'with namespace' => [
+            [
+                'Bar' => [
+                    'required' => [
+                        'profile',
+                        'user',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'profile' => [
+                            'type' => 'string',
+                        ],
+                    ],
+                ],
+            ],
+            static function (ClassModels $models) {
+                $type = $models->get('Name\\Space\\Bar')->property('profile')->phpType;
+                self::assertInstanceOf(StringType::class, $type);
+            },
+            0,
+            'Name\\Space',
+        ];
+
+        yield 'class type referencing class type' => [
             [
                 'Bar' => [
                     'required' => [
