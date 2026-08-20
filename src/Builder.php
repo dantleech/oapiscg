@@ -124,7 +124,7 @@ final class Builder
 
                 // if this is a class type, convert it to a shape
                 if ($type instanceof ClassType) {
-                    $type = $this->pending[$type->name->toString()] ?? $this->buildPhpType($type->name->shortName(), $path);
+                    $type = $this->pending[$type->name->toString()] ?? $this->buildShapeOrClass($this->finder->find($type->name->shortName()), [], forceShape: true);
                 }
 
                 if (!$type instanceof ShapeType) {
@@ -185,7 +185,7 @@ final class Builder
             'boolean' => new BooleanType(),
             'number' => new FloatType(),
             'array' => $this->buildArrayType($schema, $path),
-            'object' => $this->buildShape($schema, $path),
+            'object' => $this->buildShapeOrClass($schema, $path),
             'null' => new NullType(),
             default => throw new \RuntimeException(sprintf(
                 'Do not know how to map openapi schema: %s',
@@ -222,6 +222,10 @@ final class Builder
 
         $type = $this->buildPhpType($schemaName, $path);
 
+        if ($type instanceof ClassType) {
+            return new ClassType($this->className($schemaName));
+        }
+
         if ($type instanceof ShapeType) {
             $className = $this->className($schemaName);
             $this->ensureClassIsBuilt($className, $type);
@@ -241,12 +245,13 @@ final class Builder
     /**
      * @param list<string> $path
      */
-    private function buildShape(Schema $schema, array $path = []): PhpType
+    private function buildShapeOrClass(Schema $schema, array $path = [], bool $forceShape = false): PhpType
     {
         $properties = [];
         foreach ($schema->properties as $name => $property) {
             $newPath = $path;   
             $newPath[] = (string)$name;
+
             $phpType = $this->buildPhpType($property, $newPath);
 
             // @mago-expect analyzer:redundant-null-coalesce
@@ -259,7 +264,7 @@ final class Builder
 
         $type = new ShapeType($properties);
 
-        if (count($path) > $this->inlineLevel) {
+        if ($forceShape === true || count($path) > $this->inlineLevel) {
             return $type;
         }
 

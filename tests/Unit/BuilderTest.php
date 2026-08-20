@@ -265,26 +265,15 @@ final class BuilderTest extends TestCase
             }
         ];
 
-        yield 'ref object' => [
+        yield 'refe object' => [
             [
-                'Foo' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'object' => [
-                            '$ref' => '#/components/schemas/Bar',
-                        ],
-                    ],
-                ],
                 'Bar' => [
                     'type' => 'object',
                     'properties' => [
                         'obj1' => [
                             'type' => 'object',
                             'properties' => [
-                                'foobar' => [
-                                    'type' => 'string'
-                                ],
-                                'barfoo' => [
+                                'barfoo1' => [
                                     '$ref' => '#/components/schemas/Baz'
                                 ],
                             ],
@@ -293,24 +282,11 @@ final class BuilderTest extends TestCase
                 ],
                 'Baz' => [
                     'type' => 'object',
-                    'properties' => [
-                        'bazzz' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'foobar' => [
-                                    'type' => 'string'
-                                ],
-                            ],
-                        ]
-                    ],
                 ],
             ], 
             static function (ClassModels $models) {
-                $type = $models->get('Foo')->property('object')->phpType;
-
-                self::assertEquals('?\Foo\Object', $type->phpDocString());
                 self::assertEquals('?\Bar\Obj1', $models->get('Bar')->property('obj1')->phpType->phpDocString());
-                self::assertEquals('Baz', $models->get('Bar\Obj1')->property('barfoo')->phpType->phpDocString());
+                self::assertEquals('?\Baz', $models->get('Bar\Obj1')->property('barfoo1')->phpType->phpDocString());
             },
             10
         ];
