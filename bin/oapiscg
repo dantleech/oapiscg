@@ -2,7 +2,6 @@
 <?php
 
 use DTL\OapiScg\Console\GenerateCommand;
-use DTL\OapiScg\Generator;
 use Symfony\Component\Console\Application;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -11,4 +10,5 @@ ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 
 $application = new Application();
 $application->addCommand(new GenerateCommand());
+$application->setDefaultCommand('generate', true);
 $application->run();
