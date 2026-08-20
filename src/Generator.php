@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
-use DTL\OapiScg\Builder;
+
 use Generator as PhpGenerator;
 use PhpParser\PrettyPrinter\Standard;
 
@@ -20,6 +23,7 @@ final class Generator
         string $openApiUri,
         string $outputPath,
         string $namespace = '',
+        int $inlineLevel = 2,
     ): self
     {
         if (file_exists($openApiUri)) {
@@ -31,10 +35,23 @@ final class Generator
                 ));
             }
         }
+
+        if (substr($outputPath, 0, 1) !== '/') {
+            $cwd = getcwd();
+            if (false === $cwd) {
+                throw new \RuntimeException('Could not resolve CWD');
+            }
+            $outputPath = $cwd . '/' . $outputPath;
+        }
+
         $finder = SchemaFinder::fromJsonSpec($openApiUri);
 
-        $builder = new Builder($finder, $namespace);
-        $generator = new ClassFileGenerator($namespace);
+        $builder = new Builder(
+            $finder,
+            namespace: $namespace,
+            inlineLevel: $inlineLevel
+        );
+        $generator = new ClassFileGenerator(namespacePrefix: $namespace);
         $dumper = new Dumper(new Standard(), $outputPath);
 
         return new self($builder, $generator, $dumper);

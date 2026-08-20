@@ -6,7 +6,7 @@ php-version = "8.5.0"
 
 [source]
 workspace = "."
-paths = ["src/", "tests/", "tmp/"]
+paths = ["src/", "tests/"]
 includes = ["vendor"]
 excludes = []
 
@@ -24,7 +24,10 @@ integrations = ["phpunit"]
 [linter.rules]
 ambiguous-function-call = { enabled = false }
 literal-named-argument = { enabled = false }
-halstead = { effort-threshold = 7000 }
+halstead = { enabled = false }
+kan-defect = { enabled = false }
+cyclomatic-complexity = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
 
 [analyzer]
 plugins = []

@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg\Tests\Unit;
 
 use Closure;
 use DTL\OapiScg\Builder;
 use DTL\OapiScg\Model\ClassModels;
+use DTL\OapiScg\Model\Type\ClassType;
+use DTL\OapiScg\Model\Type\ShapeType;
+use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\SchemaFinder;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -17,7 +23,7 @@ final class BuilderTest extends TestCase
      * @param Closure(ClassModels): void $test
      */
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test): void
+    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0, string $namespace = ''): void
     {
         $api = [
             'openapi' => '3.0.0',
@@ -29,14 +35,13 @@ final class BuilderTest extends TestCase
 
         $models = (new Builder(
             SchemaFinder::fromJson((string)json_encode($api)),
-            ''
+            namespace: $namespace,
+            inlineLevel: $inlineLevel
         ))->generate();
 
         $test($models);
     }
-    /**
-     * @return Generator<array{array<string,array<mixed>>,Closure(ClassModels):void,2?:bool}>
-     */
+
     public static function provideBuildDTO(): Generator
     {
         yield 'scalar types' => [
@@ -52,21 +57,21 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
-                    'string',
+                    '?string',
                     $models->get('Foo')->property('string')->phpType->nativeTypeString()
                 );
                 self::assertEquals(
-                    'int',
+                    '?int',
                     $models->get('Foo')->property('integer')->phpType->nativeTypeString()
                 );
                 self::assertEquals(
-                    'float',
+                    '?float',
                     $models->get('Foo')->property('number')->phpType->nativeTypeString()
                 );
                 self::assertEquals(
-                    'bool',
+                    '?bool',
                     $models->get('Foo')->property('boolean')->phpType->nativeTypeString()
                 );
                 self::assertEquals(
@@ -101,17 +106,17 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
-                    'array',
+                    '?array',
                     $models->get('Foo')->property('scalarList')->phpType->nativeTypeString()
                 );
                 self::assertEquals(
-                    'list<string>',
+                    '?list<string>',
                     $models->get('Foo')->property('scalarList')->phpType->phpDocString()
                 );
                 self::assertEquals(
-                    'list<array{id:int}>',
+                    '?list<array{id:?int}>',
                     $models->get('Foo')->property('objectList')->phpType->phpDocString()
                 );
             }
@@ -121,6 +126,7 @@ final class BuilderTest extends TestCase
             [
                 'Foo' => [
                     'type' => 'object',
+                    'required' => ['inlineUnion'],
                     'properties' => [
                         'inlineUnion' => [
                             'type' => ['string', 'boolean'],
@@ -128,7 +134,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     'string|bool',
                     $models->get('Foo')->property('inlineUnion')->phpType->nativeTypeString()
@@ -152,10 +158,10 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Foo')->property('object')->phpType;
                 self::assertEquals(
-                    'array{id:int}',
+                    '?array{id:?int}',
                     $type->phpDocString()
                 );
             }
@@ -175,9 +181,9 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
-                    'string|int',
+                    'string|int|null',
                     $models->get('Foo')->property('oneOf')->phpType->nativeTypeString()
                 );
             }
@@ -187,17 +193,20 @@ final class BuilderTest extends TestCase
             [
                 'Foo' => [
                     'type' => 'object',
+                    'required' => ['allOf'],
                     'properties' => [
                         'allOf' => [
                             'allOf' => [
                                 [
                                     'type' => 'object',
+                                    'required' => ['foo'],
                                     'properties' => [
                                         'foo' => [ 'type' => 'string'],
                                     ],
                                 ],
                                 [
                                     'type' => 'object',
+                                    'required' => ['bar'],
                                     'properties' => [
                                         'bar' => [ 'type' => 'integer'],
                                     ],
@@ -207,7 +216,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals(
                     'array{foo:string,bar:int}',
                     $models->get('Foo')->property('allOf')->phpType->phpDocString()
@@ -250,7 +259,7 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 self::assertEquals('Foo', $models->get('Foo')->name->toString());
                 self::assertEquals('newField', $models->get('Foo')->property('newField')->name);
             }
@@ -296,12 +305,12 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ], 
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Foo')->property('object')->phpType;
 
-                self::assertEquals('\Bar', $type->phpDocString());
+                self::assertEquals('?\Bar', $type->phpDocString());
                 self::assertEquals(
-                    'array{foobar:string,barfoo:\Baz}',
+                    '?array{foobar:?string,barfoo:?\Baz}',
                     $models->get('Bar')->property('obj1')->phpType->phpDocString()
                 );
             }
@@ -328,22 +337,22 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ],
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 // `builder->build()` can probably be removed in favour of resolvePhpType...
                 // ... or at least the class structure be represented in the type system
                 // so that references can resolve to types.
                 self::assertEquals(
-                    'string|bool',
+                    'string|bool|null',
                     $models->get('Bar')->property('foo')->phpType->nativeTypeString()
                 );
             }
         ];
 
-
         yield 'enum' => [
             [
                 'Bar' => [
                     'type' => 'object',
+                    'required' => ['missingTypeEnum'],
                     'properties' => [
                         'missingTypeEnum' => [
                             'enum' => [
@@ -361,14 +370,119 @@ final class BuilderTest extends TestCase
                     ],
                 ],
             ],
-            function (ClassModels $models) {
+            static function (ClassModels $models) {
                 $type = $models->get('Bar')->property('missingTypeEnum')->phpType;
                 self::assertEquals('string', $type->nativeTypeString());
                 self::assertEquals('"foo"|"bar"', $type->phpDocString());
 
                 // wrong type but its the one it declared
-                self::assertEquals('int', $models->get('Bar')->property('typeNum')->phpType->nativeTypeString());
+                self::assertEquals('?int', $models->get('Bar')->property('typeNum')->phpType->nativeTypeString());
             }
+        ];
+
+        yield 'required' => [
+            [
+                'Bar' => [
+                    'required' => [
+                        'prop1',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'prop1' => [
+                            'type' => ['string'],
+                        ],
+                        'prop2' => [
+                            'required' => true,
+                            'type' => ['string'],
+                        ],
+                        'prop3' => [
+                            'required' => false,
+                            'type' => ['string'],
+                        ],
+                    ],
+                ],
+            ],
+            static function (ClassModels $models) {
+                $type = $models->get('Bar')->property('prop1')->phpType;
+                self::assertEquals('string', $type->nativeTypeString());
+            }
+        ];
+
+        yield 'extract class for array shape' => [
+            [
+                'Bar' => [
+                    'required' => [
+                        'profile',
+                        'user',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'profile' => [
+                            'type' => 'object',
+                            'required' => ['user'],
+                            'properties' => [
+                                'foo' => ['type' => 'string'],
+                                'user' => [
+                                    'type' => 'object',
+                                    'required' => ['car'],
+                                    'properties' => [
+                                        'car' => [
+                                            'type' => 'object',
+                                            'required' => [
+                                                'numberplate'
+                                            ],
+                                            'properties' => [
+                                                'numberplate' => ['type'=>'string'],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            static function (ClassModels $models) {
+                $type = $models->get('Bar')->property('profile')->phpType;
+                self::assertInstanceOf(ClassType::class, $type);
+                self::assertEquals('Bar\\Profile', $type->name->toString());
+
+                // level 1 is a class
+                $type = $models->get('Bar\\Profile')->property('user')->phpType;
+                self::assertInstanceOf(ClassType::class, $type);
+
+                // level 2 is a class
+                $type = $models->get('Bar\\Profile')->property('user')->phpType;
+                self::assertInstanceOf(ClassType::class, $type);
+
+                // level 3 is inlined to an array shape
+                $type = $models->get('Bar\\Profile\\User')->property('car')->phpType;
+                self::assertInstanceOf(ShapeType::class, $type);
+            },
+            3
+        ];
+
+        yield 'with namespace' => [
+            [
+                'Bar' => [
+                    'required' => [
+                        'profile',
+                        'user',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'profile' => [
+                            'type' => 'string',
+                        ],
+                    ],
+                ],
+            ],
+            static function (ClassModels $models) {
+                $type = $models->get('Name\\Space\\Bar')->property('profile')->phpType;
+                self::assertInstanceOf(StringType::class, $type);
+            },
+            0,
+            'Name\\Space',
         ];
     }
 }

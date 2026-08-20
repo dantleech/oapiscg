@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
 use DTL\OapiScg\Exception\SchemaNotFound;
@@ -20,6 +23,12 @@ final class SchemaFinder
 
     public static function fromJsonSpec(string $path): self
     {
+        if (!file_exists($path)) {
+            throw new \RuntimeException(sprintf(
+                'No file exists at: %s',
+                $path
+            ));
+        }
         $api = Reader::readFromJsonFile($path, resolveReferences: 'inline');
         if (!$api instanceof OpenApi) {
             throw new \RuntimeException(sprintf(
@@ -32,9 +41,9 @@ final class SchemaFinder
 
     public function find(string $name): Schema
     {
-        $schemas = $this->openApi?->components?->schemas ?? [];
+        $schemas = $this->openApi?->components->schemas ?? [];
 
-        if (!isset($schemas[$name])) {
+        if (!array_key_exists($name, $schemas)) {
             throw new SchemaNotFound(sprintf('No schema with name "%s" found, known schemas: "%s"',
                 $name, implode('", "', array_keys($schemas))
             ));
@@ -58,8 +67,8 @@ final class SchemaFinder
     public function names(): array
     {
         return array_map(
-            fn ($s) => (string)$s,
-            array_keys($this->openApi?->components?->schemas ?? [])
+            static fn ($s) => (string)$s,
+            array_keys($this->openApi?->components->schemas ?? [])
         );
     }
 }

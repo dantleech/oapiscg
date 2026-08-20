@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg\Tests\Unit\Model\Type;
 
 use DTL\OapiScg\Model\Type\UnionType;
@@ -10,7 +13,7 @@ final class UnionTypeTest extends TestCase
     public function testFromValues(): void
     {
         $type = UnionType::fromValues(['foobar', 'barfoo']);
-        self::assertEquals('string', $type->nativeTypeString());
-        self::assertEquals('"foobar"|"barfoo"', $type->phpDocString());
+        static::assertSame('string', $type->nativeTypeString());
+        static::assertSame('"foobar"|"barfoo"', $type->phpDocString());
     }
 }

@@ -1,5 +1,8 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
 use DTL\OapiScg\Model\ClassModel;
@@ -14,17 +17,30 @@ use DTL\OapiScg\Model\Type\IntegerType;
 use DTL\OapiScg\Model\Type\ListType;
 use DTL\OapiScg\Model\Type\MixedType;
 use DTL\OapiScg\Model\Type\NullType;
+use DTL\OapiScg\Model\Type\OptionalType;
 use DTL\OapiScg\Model\Type\ShapeType;
 use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\Model\Type\UnionType;
+use DTL\OapiScg\Model\Value;
 use cebe\openapi\spec\Reference;
 use cebe\openapi\spec\Schema;
 
 final class Builder
 {
+    /**
+     * @var array<string,ShapeType>
+     */
+    private array $pending = [];
+
+    /**
+     * @var array<string,bool>
+     */
+    private array $resolved = [];
+
     public function __construct(
         private SchemaFinder $finder,
         private ?string $namespace = null,
+        private int $inlineLevel = 0,
     )
     {
     }
@@ -37,60 +53,78 @@ final class Builder
 
         $models = [];
         foreach ($names as $name) {
-            $type = $this->buildPhpType($name);
+            $schema = $this->finder->find($name);
+
+            $type = $this->buildPhpType($schema, [$name]);
+            $default = null;
+
             if (!$type instanceof ShapeType) {
                 continue;
             }
+            $this->pending[$this->className($name)->toString()] = $type;
+        }
 
-            $models[] = new ClassModel(
-                $this->className($name),
-                array_combine(
-                    array_keys($type->properties),
-                    array_map(
-                        function (string $name, PhpType $type) {
-                            return new PropertyModel(
-                                $name,
-                                $type,
-                            );
-                        },
+        while (count($this->pending) > 0) {
+            $queue = $this->pending;
+            $this->pending = [];
+            foreach ($queue as $name => $type) {
+                $models[] = new ClassModel(
+                    FullyQualifiedName::fromString($name),
+                    array_combine(
                         array_keys($type->properties),
-                        array_values($type->properties)
-                    )
-                )
-            );
+                        array_map(
+                            static function (string $name, PhpType $type) {
+                                $default = null;
+                                if ($type instanceof OptionalType) {
+                                    $type = $type->type;
+                                    $default = new Value(null);
+                                }
+                                return new PropertyModel(
+                                    $name,
+                                    $type,
+                                    $default,
+                                );
+                            },
+                            array_keys($type->properties),
+                            array_values($type->properties)
+                        )
+                    ),
+                );
+                $this->resolved[$name] = true;
+            }
         }
 
         return ClassModels::fromClassModels(...$models);
     }
-
-    private function buildPhpType(Schema|Reference|string $schema): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function buildPhpType(Schema|Reference|string $schema, array $path): PhpType
     {
         if (is_string($schema)) {
-            $schemaName = $schema;
-
-            $schema = $this->finder->find($schemaName);
+            $schema = $this->finder->find($schema);
         }
 
         if ($schema instanceof Reference) {
-            return $this->resolveReferenceType($schema);
+            return $this->resolveReferenceType($schema, $path);
         }
 
         if ($schema->oneOf) {
             return new UnionType(
                 array_values(array_map(
-                    fn (Schema|Reference $schema) => $this->buildPhpType($schema),
+                    fn (Schema|Reference $s) => $this->buildPhpType($s, $path),
                     $schema->oneOf
                 ))
             );
         }
 
         if ($schema->allOf) {
-            return new ShapeType(array_reduce($schema->allOf, function (array $properties, Schema|Reference $s) {
-                $type = $this->buildPhpType($s);
+            return new ShapeType(array_reduce($schema->allOf, function (array $properties, Schema|Reference $s) use ($path) {
+                $type = $this->buildPhpType($s, $path);
 
                 // if this is a class type, convert it to a shape
                 if ($type instanceof ClassType) {
-                    $type = $this->buildPhpType($type->name->shortName());
+                    $type = $this->pending[$type->name->toString()] ?? $this->buildPhpType($type->name->shortName(), $path);
                 }
 
                 if (!$type instanceof ShapeType) {
@@ -107,10 +141,12 @@ final class Builder
             }, []));
         }
 
+        // the type is a lie, if it's an array build a union
+        // @mago-expect analyzer:impossible-condition,impossible-type-comparison
         if (is_array($schema->type)) {
             return new UnionType(
                 array_values(array_map(
-                    function (mixed $string) use ($schema) {
+                    function (mixed $string) use ($schema, $path) {
                         if (!is_string($string)) {
                             throw new \RuntimeException(
                                 'Do not know how to deal with non-scalar type here'
@@ -120,8 +156,9 @@ final class Builder
                         $schema = new Schema([]);
                         $schema->type = $string;
 
-                        return $this->buildPhpType($schema);
+                        return $this->buildPhpType($schema, $path);
                     },
+                    // @mago-expect analyzer:no-value
                     $schema->type
                 ))
             );
@@ -138,7 +175,7 @@ final class Builder
             }
 
             if ($schema->enum) {
-                return UnionType::fromValues($schema->enum);
+                return UnionType::fromValues(array_values($schema->enum));
             }
         }
 
@@ -147,8 +184,8 @@ final class Builder
             'integer' => new IntegerType(),
             'boolean' => new BooleanType(),
             'number' => new FloatType(),
-            'array' => $this->buildArrayType($schema),
-            'object' => $this->buildShape($schema),
+            'array' => $this->buildArrayType($schema, $path),
+            'object' => $this->buildShape($schema, $path),
             'null' => new NullType(),
             default => throw new \RuntimeException(sprintf(
                 'Do not know how to map openapi schema: %s',
@@ -156,45 +193,34 @@ final class Builder
             )),
         };
     }
-
     /**
-     * @phpstan-assert Schema $schema
+     * @param list<string> $path
      */
-    private function _assertSchema(Schema|Reference $schema): void
-    {
-        if ($schema instanceof Reference) {
-            throw new \RuntimeException(sprintf(
-                'Resolving references not currently supported at "%s": %s',
-                $this->currentPath(),
-                $schema->getReference()
-            ));
-        }
-    }
-
-    private function buildArrayType(Schema $property): PhpType
+    private function buildArrayType(Schema $property, array $path): PhpType
     {
         $itemType = $property->items;
         if ($itemType === null) {
             return new ListType(new MixedType());
         }
-        return new ListType($this->buildPhpType($itemType));
+        return new ListType($this->buildPhpType($itemType, $path));
     }
-
-    private function resolveReferenceType(Reference $property): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function resolveReferenceType(Reference $property, array $path): PhpType
     {
-        $path = $property->getJsonReference()->getJsonPointer()->getPath();
+        $refPath = $property->getJsonReference()->getJsonPointer()->getPath();
 
-        if (array_slice($path, 0, 2) !== ['components', 'schemas']) {
+        if (array_slice($refPath, 0, 2) !== ['components', 'schemas']) {
             throw new \RuntimeException(sprintf(
                 'Unsupported reference: %s',
                 $property->getReference()
             ));
         }
 
-        // TODO: better way?
-        $schemaName = array_pop($path);
+        $schemaName = (string)array_pop($refPath);
 
-        $type = $this->buildPhpType((string)$schemaName);
+        $type = $this->buildPhpType($schemaName, $path);
 
         if ($type instanceof ShapeType) {
             return new ClassType($this->className($schemaName));
@@ -205,29 +231,40 @@ final class Builder
 
     private function className(string $name): FullyQualifiedName
     {
-        return FullyQualifiedName::fromNamespaceAndName(
+        return FullyQualifiedName::fromStrings(
             $this->namespace ?? '',
             $name
         );
     }
-
-    private function _currentModelName(): string
-    {
-        $model = end($this->modelStack) ?: null;
-        if (null === $model) {
-            throw new \RuntimeException(sprintf(
-                'model stack is empty - this should not happen!'
-            ));
-        }
-        return $model;
-    }
-
-    private function buildShape(Schema $property): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function buildShape(Schema $schema, array $path = []): PhpType
     {
         $properties = [];
-        foreach ($property->properties as $name => $property) {
-            $properties[(string)$name] = $this->buildPhpType($property);
+        foreach ($schema->properties as $name => $property) {
+            $newPath = $path;   
+            $newPath[] = (string)$name;
+            $phpType = $this->buildPhpType($property, $newPath);
+
+            // @mago-expect analyzer:redundant-null-coalesce
+            if (false === in_array($name, $schema->required ?? [], true)) {
+                $phpType = new OptionalType($phpType->makeNullable());
+            }
+
+            $properties[(string)$name] = $phpType;
         }
-        return new ShapeType($properties);
+
+        $type = new ShapeType($properties);
+
+        if (count($path) > $this->inlineLevel) {
+            return $type;
+        }
+
+        $name = $this->className(implode('\\', array_map('ucfirst', $path)));
+        if (!array_key_exists($name->toString(), $this->resolved)) {
+            $this->pending[$name->toString()] = $type;
+        }
+        return new ClassType($name);
     }
 }

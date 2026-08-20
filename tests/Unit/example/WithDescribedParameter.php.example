@@ -1,0 +1,12 @@
+/**
+ * This is a class
+ */
+final class WithDescribedParameter
+{
+    /**
+     * @param string $one this is a thing
+     */
+    function __construct(public string $one)
+    {
+    }
+}
