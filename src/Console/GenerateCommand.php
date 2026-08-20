@@ -41,17 +41,20 @@ final class GenerateCommand extends Command
         $outPath = $input->getArgument(self::ARG_OUT_PATH);
         /** @var list<string> $components */
         $components = $input->getArgument(self::ARG_COMPONENTS);
-        /** @var false|string $namespace */
+        /** @var null|string $namespace */
         $namespace = $input->getOption(self::OPT_NAMESPACE);
-        /** @var false|string $inlineLevel */
+        /** @var null|string $inlineLevel */
         $inlineLevel = $input->getOption(self::OPT_INLINE_LEVEL);
 
         $generator = Generator::new(
             $specPath,
             $outPath,
-            namespace: $namespace === false ? '' :  $namespace,
+            namespace: $namespace ?? '',
             inlineLevel: (int)$inlineLevel
         );
+
+        $output->writeln(sprintf('Writing to directory: %s', $outPath));
+        $output->writeln('');
             
         $start = microtime(true);
         $count = 0;
@@ -60,8 +63,6 @@ final class GenerateCommand extends Command
             $output->writeln(sprintf('<fg=cyan>%4d bytes</> <fg=red>></> %s',$result->written, implode('<fg=cyan>.</>', explode('/', $result->path))));
         }
 
-        $output->writeln('');
-        $output->writeln(sprintf('Output to: %s', $outPath));
         $output->writeln('');
         $message = sprintf('<fg=black;bg=green> Generated %s classes in %s seconds </>', $count, number_format(microtime(true) - $start, 4));
         $output->writeln($message);

@@ -1,4 +1,4 @@
 /.phpunit.cache
 /vendor
 /composer.lock
-/Workspace
+/tests/Workspace
