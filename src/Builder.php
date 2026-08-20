@@ -28,14 +28,13 @@ use cebe\openapi\spec\Schema;
 final class Builder
 {
     /**
-     * @var list<string>
-     */
-    private array $path = [];
-
-    /**
      * @var array<string,ShapeType>
      */
     private array $pending = [];
+
+    /**
+     * @var array<string,bool>
+     */
     private array $resolved = [];
 
     public function __construct(
@@ -263,7 +262,7 @@ final class Builder
         }
 
         $name = $this->className(implode('\\', array_map('ucfirst', $path)));
-        if (!isset($this->resolved[$name->toString()])) {
+        if (!array_key_exists($name->toString(), $this->resolved)) {
             $this->pending[$name->toString()] = $type;
         }
         return new ClassType($name);

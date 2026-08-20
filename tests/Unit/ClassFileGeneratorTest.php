@@ -25,11 +25,11 @@ final class ClassFileGeneratorTest extends TestCase
     {
         $model = new ClassModel(FullyQualifiedName::fromString('Foobar\\Barfoo'), []);
         $file = (new ClassFileGenerator())->generate($model);
-        self::assertEquals('Foobar/Barfoo', $file->name);
+        static::assertSame('Foobar/Barfoo', $file->name);
 
         $model = new ClassModel(FullyQualifiedName::fromString('Foo\\Bar\\Baz'), []);
         $file = (new ClassFileGenerator(namespacePrefix: 'Foo'))->generate($model);
-        self::assertEquals('Bar/Baz', $file->name);
+        static::assertSame('Bar/Baz', $file->name);
     }
 
     #[DataProvider('provideGenerate')]

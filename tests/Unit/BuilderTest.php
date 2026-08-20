@@ -23,7 +23,7 @@ final class BuilderTest extends TestCase
      * @param Closure(ClassModels): void $test
      */
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0, $namespace = ''): void
+    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0, string $namespace = ''): void
     {
         $api = [
             'openapi' => '3.0.0',

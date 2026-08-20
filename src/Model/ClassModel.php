@@ -16,7 +16,7 @@ final class ClassModel
 
     public function property(string $name): PropertyModel
     {
-        if (!isset($this->properties[$name])) {
+        if (!array_key_exists($name, $this->properties)) {
             throw new \RuntimeException(sprintf(
                 'Property "%s" does not exist, known properties: "%s"',
                 $name, 

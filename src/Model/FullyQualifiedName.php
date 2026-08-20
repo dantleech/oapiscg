@@ -45,7 +45,7 @@ final class FullyQualifiedName
 
     public static function fromString(string $name): self
     {
-        if ('' == trim($name)) {
+        if ('' === trim($name)) {
             throw new \RuntimeException('Class name cannot be empty');
         }
 

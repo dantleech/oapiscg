@@ -43,7 +43,7 @@ final class SchemaFinder
     {
         $schemas = $this->openApi?->components->schemas ?? [];
 
-        if (!isset($schemas[$name])) {
+        if (!array_key_exists($name, $schemas)) {
             throw new SchemaNotFound(sprintf('No schema with name "%s" found, known schemas: "%s"',
                 $name, implode('", "', array_keys($schemas))
             ));

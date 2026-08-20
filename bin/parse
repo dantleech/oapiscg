@@ -26,7 +26,7 @@ if ($outPath === null) {
 }
 
 try {
-    $generator = Generator::new($file, $outPath, namespace: $namespace);
+    $generator = Generator::new($file, $outPath, namespace: $namespace, inlineLevel: 10);
 } catch (\Exception $e) {
     stderr($e->getMessage());
     exit(1);

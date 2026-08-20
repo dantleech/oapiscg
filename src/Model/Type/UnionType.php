@@ -34,8 +34,10 @@ final class UnionType extends PhpType
             array_values($this->types),
         );
 
+        /** @mago-expect lint:strict-behavior */
         if (count($types) === 2 && in_array(new NullType(), $types, false)) {
             foreach ($types as $type) {
+                /** @mago-expect lint:identity-comparison */
                 if ($type != new NullType) {
                     return sprintf('?%s', $type->$method());
                 }
@@ -66,13 +68,14 @@ final class UnionType extends PhpType
         return new self($types);
     }
 
-    public function withType(NullType $nullType): PhpType
+    public function withType(PhpType $newType): PhpType
     {
         foreach ($this->types as $type) {
-            if ($type == $nullType) {
+            /** @mago-expect lint:identity-comparison */
+            if ($type == $newType) {
                 return $this;
             }
         }
-        return new self([...$this->types, $nullType]);
+        return new self([...$this->types, $newType]);
     }
 }
