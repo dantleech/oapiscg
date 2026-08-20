@@ -9,6 +9,7 @@ use Closure;
 use DTL\OapiScg\Builder;
 use DTL\OapiScg\Model\ClassModels;
 use DTL\OapiScg\Model\Type\ClassType;
+use DTL\OapiScg\Model\Type\ShapeType;
 use DTL\OapiScg\SchemaFinder;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -21,7 +22,7 @@ final class BuilderTest extends TestCase
      * @param Closure(ClassModels): void $test
      */
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 10): void
+    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0): void
     {
         $api = [
             'openapi' => '3.0.0',
@@ -411,13 +412,30 @@ final class BuilderTest extends TestCase
                 'Bar' => [
                     'required' => [
                         'profile',
+                        'user',
                     ],
                     'type' => 'object',
                     'properties' => [
                         'profile' => [
                             'type' => 'object',
+                            'required' => ['user'],
                             'properties' => [
                                 'foo' => ['type' => 'string'],
+                                'user' => [
+                                    'type' => 'object',
+                                    'required' => ['car'],
+                                    'properties' => [
+                                        'car' => [
+                                            'type' => 'object',
+                                            'required' => [
+                                                'numberplate'
+                                            ],
+                                            'properties' => [
+                                                'numberplate' => ['type'=>'string'],
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                     ],
@@ -426,9 +444,21 @@ final class BuilderTest extends TestCase
             static function (ClassModels $models) {
                 $type = $models->get('Bar')->property('profile')->phpType;
                 self::assertInstanceOf(ClassType::class, $type);
-                self::assertEquals('Bar_Profile', $type->name->toString());
+                self::assertEquals('Bar\\Profile', $type->name->toString());
+
+                // level 1 is a class
+                $type = $models->get('Bar\\Profile')->property('user')->phpType;
+                self::assertInstanceOf(ClassType::class, $type);
+
+                // level 2 is a class
+                $type = $models->get('Bar\\Profile')->property('user')->phpType;
+                self::assertInstanceOf(ClassType::class, $type);
+
+                // level 3 is inlined to an array shape
+                $type = $models->get('Bar\\Profile\\User')->property('car')->phpType;
+                self::assertInstanceOf(ShapeType::class, $type);
             },
-            0
+            3
         ];
     }
 }

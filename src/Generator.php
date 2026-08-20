@@ -23,6 +23,7 @@ final class Generator
         string $openApiUri,
         string $outputPath,
         string $namespace = '',
+        int $inlineLevel = 2,
     ): self
     {
         if (file_exists($openApiUri)) {
@@ -45,7 +46,11 @@ final class Generator
 
         $finder = SchemaFinder::fromJsonSpec($openApiUri);
 
-        $builder = new Builder($finder, $namespace);
+        $builder = new Builder(
+            $finder,
+            namespace: $namespace,
+            inlineLevel: $inlineLevel
+        );
         $generator = new ClassFileGenerator();
         $dumper = new Dumper(new Standard(), $outputPath);
 

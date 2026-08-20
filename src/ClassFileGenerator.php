@@ -16,7 +16,7 @@ use PhpParser\Node\Stmt\Namespace_;
 
 final class ClassFileGenerator
 {
-    public function __construct()
+    public function __construct(string $namespacePrefix = '')
     {
     }
 
@@ -28,7 +28,8 @@ final class ClassFileGenerator
         }
         $stmts[] = $this->generateClass($model);
 
-        return new SourceFile($model->name->shortName(), $stmts);
+
+        return new SourceFile($this->resolveRelativePath($model), $stmts);
     }
 
     private function generateClass(ClassModel $model): Class_
@@ -103,5 +104,10 @@ final class ClassFileGenerator
         // are positioned before optional ones (ones that do have default values).
         usort($properties, static fn (PropertyModel $property1, PropertyModel $property2) => $property1->default === null ? -1 : 1);
         return $properties;
+    }
+
+    private function resolveRelativePath(ClassModel $model): string
+    {
+        return $model->name->shortName();
     }
 }

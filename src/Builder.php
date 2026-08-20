@@ -32,6 +32,12 @@ final class Builder
      */
     private array $path = [];
 
+    /**
+     * @var array<string,ShapeType>
+     */
+    private array $pending = [];
+    private array $resolved = [];
+
     public function __construct(
         private SchemaFinder $finder,
         private ?string $namespace = null,
@@ -50,36 +56,43 @@ final class Builder
         foreach ($names as $name) {
             $schema = $this->finder->find($name);
 
-            $type = $this->buildPhpType($schema, []);
+            $type = $this->buildPhpType($schema, [$name]);
             $default = null;
 
             if (!$type instanceof ShapeType) {
                 continue;
             }
+            $this->pending[$name] = $type;
+        }
 
-            $models[] = new ClassModel(
-                $this->className($name),
-                array_combine(
-                    array_keys($type->properties),
-                    array_map(
-                        static function (string $name, PhpType $type) {
-                            $default = null;
-                            if ($type instanceof OptionalType) {
-                                $type = $type->type;
-                                $default = new Value(null);
-                            }
-                            return new PropertyModel(
-                                $name,
-                                $type,
-                                $default,
-                            );
-                        },
+        while (count($this->pending) > 0) {
+            $queue = $this->pending;
+            $this->pending = [];
+            foreach ($queue as $name => $type) {
+                $models[] = new ClassModel(
+                    $this->className($name),
+                    array_combine(
                         array_keys($type->properties),
-                        array_values($type->properties)
-                    )
-                ),
-                description: $schema->description,
-            );
+                        array_map(
+                            static function (string $name, PhpType $type) {
+                                $default = null;
+                                if ($type instanceof OptionalType) {
+                                    $type = $type->type;
+                                    $default = new Value(null);
+                                }
+                                return new PropertyModel(
+                                    $name,
+                                    $type,
+                                    $default,
+                                );
+                            },
+                            array_keys($type->properties),
+                            array_values($type->properties)
+                        )
+                    ),
+                );
+                $this->resolved[$name] = true;
+            }
         }
 
         return ClassModels::fromClassModels(...$models);
@@ -112,7 +125,7 @@ final class Builder
 
                 // if this is a class type, convert it to a shape
                 if ($type instanceof ClassType) {
-                    $type = $this->buildPhpType($type->name->shortName(), $path);
+                    $type = $this->pending[$type->name->toString()] ?? $this->buildPhpType($type->name->shortName(), $path);
                 }
 
                 if (!$type instanceof ShapeType) {
@@ -219,7 +232,7 @@ final class Builder
 
     private function className(string $name): FullyQualifiedName
     {
-        return FullyQualifiedName::fromNamespaceAndName(
+        return FullyQualifiedName::fromStrings(
             $this->namespace ?? '',
             $name
         );
@@ -232,8 +245,8 @@ final class Builder
         $properties = [];
         foreach ($schema->properties as $name => $property) {
             $newPath = $path;   
-            $newPath[] = $name;
-            $phpType = $this->buildPhpType($property, $path);
+            $newPath[] = (string)$name;
+            $phpType = $this->buildPhpType($property, $newPath);
 
             // @mago-expect analyzer:redundant-null-coalesce
             if (false === in_array($name, $schema->required ?? [], true)) {
@@ -242,6 +255,17 @@ final class Builder
 
             $properties[(string)$name] = $phpType;
         }
-        return new ShapeType($properties);
+
+        $type = new ShapeType($properties);
+
+        if (count($path) > $this->inlineLevel) {
+            return $type;
+        }
+
+        $name = $this->className(implode('\\', array_map('ucfirst', $path)));
+        if (!isset($this->resolved[$name->toString()])) {
+            $this->pending[$name->toString()] = $type;
+        }
+        return new ClassType($name);
     }
 }
