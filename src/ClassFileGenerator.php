@@ -16,7 +16,7 @@ use PhpParser\Node\Stmt\Namespace_;
 
 final class ClassFileGenerator
 {
-    public function __construct(string $namespacePrefix = '')
+    public function __construct(private string $namespacePrefix = '')
     {
     }
 
@@ -108,6 +108,6 @@ final class ClassFileGenerator
 
     private function resolveRelativePath(ClassModel $model): string
     {
-        return $model->name->shortName();
+        return str_replace('\\', '/', $model->name->removePrefix($this->namespacePrefix)->toString());
     }
 }

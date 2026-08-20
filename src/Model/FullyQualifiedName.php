@@ -31,6 +31,10 @@ final class FullyQualifiedName
             $parts = array_merge($parts, strlen($string) > 0 ? explode('\\', $string) : []);
         }
 
+        if (count($parts) === 0) {
+            throw new \RuntimeException('Class name cannot be empty');
+        }
+
         return new self($parts);
     }
 
@@ -42,11 +46,29 @@ final class FullyQualifiedName
     public static function fromString(string $name): self
     {
         if ('' == trim($name)) {
-            throw new \RuntimeException(
-                'Class name cannot be empty'
-            );
+            throw new \RuntimeException('Class name cannot be empty');
         }
 
         return new self(explode('\\', trim($name)));
+    }
+
+    public function removePrefix(string $prefix): self
+    {
+        $match = substr($this->toString(), 0, strlen($prefix));
+        if ($match !== $prefix) {
+            throw new \RuntimeException(sprintf(
+                'Class name does not reside within namespace prefix "%s": "%s"',
+                $prefix,
+                $this->toString()
+            ));
+        }
+        $name = ltrim(
+            substr($this->toString(), strlen(trim($prefix, '\\'))),
+            '\\'
+        );
+
+        return self::fromString(
+            $name
+        );
     }
 }

@@ -70,7 +70,7 @@ final class Builder
             $this->pending = [];
             foreach ($queue as $name => $type) {
                 $models[] = new ClassModel(
-                    $this->className($name),
+                    FullyQualifiedName::fromString($name),
                     array_combine(
                         array_keys($type->properties),
                         array_map(

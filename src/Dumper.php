@@ -16,7 +16,6 @@ final class Dumper
 
     public function dump(SourceFile $file): DumpReport
     {
-        dump($file->name);
         $path = sprintf('%s/%s.php', $this->outputPath, $file->name);
         $content = $this->printer->prettyPrintFile($file->stmts);
         if (!file_exists(dirname($path))) {

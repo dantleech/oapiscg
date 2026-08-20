@@ -21,6 +21,17 @@ use Symfony\Component\Filesystem\Filesystem;
 
 final class ClassFileGeneratorTest extends TestCase
 {
+    public function testGenerateSubDirectory(): void
+    {
+        $model = new ClassModel(FullyQualifiedName::fromString('Foobar\\Barfoo'), []);
+        $file = (new ClassFileGenerator())->generate($model);
+        self::assertEquals('Foobar/Barfoo', $file->name);
+
+        $model = new ClassModel(FullyQualifiedName::fromString('Foo\\Bar\\Baz'), []);
+        $file = (new ClassFileGenerator(namespacePrefix: 'Foo'))->generate($model);
+        self::assertEquals('Bar/Baz', $file->name);
+    }
+
     #[DataProvider('provideGenerate')]
     public function testGenerate(ClassModel $model):  void
     {

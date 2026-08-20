@@ -51,7 +51,7 @@ final class Generator
             namespace: $namespace,
             inlineLevel: $inlineLevel
         );
-        $generator = new ClassFileGenerator();
+        $generator = new ClassFileGenerator(namespacePrefix: $namespace);
         $dumper = new Dumper(new Standard(), $outputPath);
 
         return new self($builder, $generator, $dumper);
