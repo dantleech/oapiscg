@@ -10,6 +10,7 @@ use DTL\OapiScg\Builder;
 use DTL\OapiScg\Model\ClassModels;
 use DTL\OapiScg\Model\Type\ClassType;
 use DTL\OapiScg\Model\Type\ShapeType;
+use DTL\OapiScg\Model\Type\StringType;
 use DTL\OapiScg\SchemaFinder;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -22,7 +23,7 @@ final class BuilderTest extends TestCase
      * @param Closure(ClassModels): void $test
      */
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0): void
+    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0, $namespace = ''): void
     {
         $api = [
             'openapi' => '3.0.0',
@@ -34,7 +35,7 @@ final class BuilderTest extends TestCase
 
         $models = (new Builder(
             SchemaFinder::fromJson((string)json_encode($api)),
-            '',
+            namespace: $namespace,
             inlineLevel: $inlineLevel
         ))->generate();
 
@@ -459,6 +460,29 @@ final class BuilderTest extends TestCase
                 self::assertInstanceOf(ShapeType::class, $type);
             },
             3
+        ];
+
+        yield 'with namespace' => [
+            [
+                'Bar' => [
+                    'required' => [
+                        'profile',
+                        'user',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'profile' => [
+                            'type' => 'string',
+                        ],
+                    ],
+                ],
+            ],
+            static function (ClassModels $models) {
+                $type = $models->get('Name\\Space\\Bar')->property('profile')->phpType;
+                self::assertInstanceOf(StringType::class, $type);
+            },
+            0,
+            'Name\\Space',
         ];
     }
 }

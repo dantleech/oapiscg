@@ -62,7 +62,7 @@ final class Builder
             if (!$type instanceof ShapeType) {
                 continue;
             }
-            $this->pending[$name] = $type;
+            $this->pending[$this->className($name)->toString()] = $type;
         }
 
         while (count($this->pending) > 0) {
