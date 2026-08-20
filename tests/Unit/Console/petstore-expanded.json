@@ -212,6 +212,12 @@
           "name": {
             "type": "string"
           },
+          "owner": {
+              "type": "object",
+              "properties": {
+                  "name": {"type": "string"}
+              }
+          },
           "tag": {
             "type": "string"
           }

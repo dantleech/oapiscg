@@ -33,6 +33,6 @@ final class Dumper
             throw new \RuntimeException(sprintf('Could not write file: %s', $path));
         }
 
-        return new DumpReport($path, $written);
+        return new DumpReport($file->name, $written);
     }
 }

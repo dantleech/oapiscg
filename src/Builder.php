@@ -223,7 +223,9 @@ final class Builder
         $type = $this->buildPhpType($schemaName, $path);
 
         if ($type instanceof ShapeType) {
-            return new ClassType($this->className($schemaName));
+            $className = $this->className($schemaName);
+            $this->ensureClassIsBuilt($className, $type);
+            return new ClassType($className);
         }
 
         return $type;
@@ -262,9 +264,14 @@ final class Builder
         }
 
         $name = $this->className(implode('\\', array_map('ucfirst', $path)));
-        if (!array_key_exists($name->toString(), $this->resolved)) {
-            $this->pending[$name->toString()] = $type;
-        }
+        $this->ensureClassIsBuilt($name, $type);
         return new ClassType($name);
+    }
+
+    private function ensureClassIsBuilt(FullyQualifiedName $className, ShapeType $type): void
+    {
+        if (!array_key_exists($className->toString(), $this->pending)) {
+            $this->pending[$className->toString()] = $type;
+        }
     }
 }
