@@ -27,9 +27,15 @@ use cebe\openapi\spec\Schema;
 
 final class Builder
 {
+    /**
+     * @var list<string>
+     */
+    private array $path = [];
+
     public function __construct(
         private SchemaFinder $finder,
         private ?string $namespace = null,
+        private int $inlineLevel = 0,
     )
     {
     }
@@ -43,7 +49,8 @@ final class Builder
         $models = [];
         foreach ($names as $name) {
             $schema = $this->finder->find($name);
-            $type = $this->buildPhpType($schema);
+
+            $type = $this->buildPhpType($schema, []);
             $default = null;
 
             if (!$type instanceof ShapeType) {
@@ -77,33 +84,35 @@ final class Builder
 
         return ClassModels::fromClassModels(...$models);
     }
-
-    private function buildPhpType(Schema|Reference|string $schema): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function buildPhpType(Schema|Reference|string $schema, array $path): PhpType
     {
         if (is_string($schema)) {
             $schema = $this->finder->find($schema);
         }
 
         if ($schema instanceof Reference) {
-            return $this->resolveReferenceType($schema);
+            return $this->resolveReferenceType($schema, $path);
         }
 
         if ($schema->oneOf) {
             return new UnionType(
                 array_values(array_map(
-                    $this->buildPhpType(...),
+                    fn (Schema|Reference $s) => $this->buildPhpType($s, $path),
                     $schema->oneOf
                 ))
             );
         }
 
         if ($schema->allOf) {
-            return new ShapeType(array_reduce($schema->allOf, function (array $properties, Schema|Reference $s) {
-                $type = $this->buildPhpType($s);
+            return new ShapeType(array_reduce($schema->allOf, function (array $properties, Schema|Reference $s) use ($path) {
+                $type = $this->buildPhpType($s, $path);
 
                 // if this is a class type, convert it to a shape
                 if ($type instanceof ClassType) {
-                    $type = $this->buildPhpType($type->name->shortName());
+                    $type = $this->buildPhpType($type->name->shortName(), $path);
                 }
 
                 if (!$type instanceof ShapeType) {
@@ -125,7 +134,7 @@ final class Builder
         if (is_array($schema->type)) {
             return new UnionType(
                 array_values(array_map(
-                    function (mixed $string) use ($schema) {
+                    function (mixed $string) use ($schema, $path) {
                         if (!is_string($string)) {
                             throw new \RuntimeException(
                                 'Do not know how to deal with non-scalar type here'
@@ -135,7 +144,7 @@ final class Builder
                         $schema = new Schema([]);
                         $schema->type = $string;
 
-                        return $this->buildPhpType($schema);
+                        return $this->buildPhpType($schema, $path);
                     },
                     // @mago-expect analyzer:no-value
                     $schema->type
@@ -163,8 +172,8 @@ final class Builder
             'integer' => new IntegerType(),
             'boolean' => new BooleanType(),
             'number' => new FloatType(),
-            'array' => $this->buildArrayType($schema),
-            'object' => $this->buildShape($schema),
+            'array' => $this->buildArrayType($schema, $path),
+            'object' => $this->buildShape($schema, $path),
             'null' => new NullType(),
             default => throw new \RuntimeException(sprintf(
                 'Do not know how to map openapi schema: %s',
@@ -172,30 +181,34 @@ final class Builder
             )),
         };
     }
-
-    private function buildArrayType(Schema $property): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function buildArrayType(Schema $property, array $path): PhpType
     {
         $itemType = $property->items;
         if ($itemType === null) {
             return new ListType(new MixedType());
         }
-        return new ListType($this->buildPhpType($itemType));
+        return new ListType($this->buildPhpType($itemType, $path));
     }
-
-    private function resolveReferenceType(Reference $property): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function resolveReferenceType(Reference $property, array $path): PhpType
     {
-        $path = $property->getJsonReference()->getJsonPointer()->getPath();
+        $refPath = $property->getJsonReference()->getJsonPointer()->getPath();
 
-        if (array_slice($path, 0, 2) !== ['components', 'schemas']) {
+        if (array_slice($refPath, 0, 2) !== ['components', 'schemas']) {
             throw new \RuntimeException(sprintf(
                 'Unsupported reference: %s',
                 $property->getReference()
             ));
         }
 
-        $schemaName = (string)array_pop($path);
+        $schemaName = (string)array_pop($refPath);
 
-        $type = $this->buildPhpType($schemaName);
+        $type = $this->buildPhpType($schemaName, $path);
 
         if ($type instanceof ShapeType) {
             return new ClassType($this->className($schemaName));
@@ -211,12 +224,16 @@ final class Builder
             $name
         );
     }
-
-    private function buildShape(Schema $schema): PhpType
+    /**
+     * @param list<string> $path
+     */
+    private function buildShape(Schema $schema, array $path = []): PhpType
     {
         $properties = [];
         foreach ($schema->properties as $name => $property) {
-            $phpType = $this->buildPhpType($property);
+            $newPath = $path;   
+            $newPath[] = $name;
+            $phpType = $this->buildPhpType($property, $path);
 
             // @mago-expect analyzer:redundant-null-coalesce
             if (false === in_array($name, $schema->required ?? [], true)) {

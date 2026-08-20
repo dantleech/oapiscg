@@ -20,7 +20,7 @@ final class BuilderTest extends TestCase
      * @param Closure(ClassModels): void $test
      */
     #[DataProvider('provideBuildDTO')]
-    public function testBuildDTO(array $spec, Closure $test): void
+    public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 10): void
     {
         $api = [
             'openapi' => '3.0.0',
@@ -32,7 +32,8 @@ final class BuilderTest extends TestCase
 
         $models = (new Builder(
             SchemaFinder::fromJson((string)json_encode($api)),
-            ''
+            '',
+            inlineLevel: $inlineLevel
         ))->generate();
 
         $test($models);
