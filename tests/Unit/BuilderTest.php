@@ -8,6 +8,7 @@ namespace DTL\OapiScg\Tests\Unit;
 use Closure;
 use DTL\OapiScg\Builder;
 use DTL\OapiScg\Model\ClassModels;
+use DTL\OapiScg\Model\Type\ClassType;
 use DTL\OapiScg\SchemaFinder;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -38,9 +39,7 @@ final class BuilderTest extends TestCase
 
         $test($models);
     }
-    /**
-     * @return Generator<array{array<string,array<mixed>>,Closure(ClassModels):void,2?:bool}>
-     */
+
     public static function provideBuildDTO(): Generator
     {
         yield 'scalar types' => [
@@ -405,6 +404,31 @@ final class BuilderTest extends TestCase
                 $type = $models->get('Bar')->property('prop1')->phpType;
                 self::assertEquals('string', $type->nativeTypeString());
             }
+        ];
+
+        yield 'extract class for array shape' => [
+            [
+                'Bar' => [
+                    'required' => [
+                        'profile',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'profile' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'foo' => ['type' => 'string'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            static function (ClassModels $models) {
+                $type = $models->get('Bar')->property('profile')->phpType;
+                self::assertInstanceOf(ClassType::class, $type);
+                self::assertEquals('Bar_Profile', $type->name->toString());
+            },
+            0
         ];
     }
 }
