@@ -46,7 +46,7 @@ final class GenerateCommandTest extends TestCase
             'spec-path' => __DIR__ . '/petstore-expanded.json',
             'out-path' => $this->workspace()->path(),
             '--namespace' => 'Acme\\Balls',
-            '--inline-level' => 1,
+            '--inline-level' => 0,
         ]);
 
         static::assertTrue($this->workspace()->exists('NewPet.php'));

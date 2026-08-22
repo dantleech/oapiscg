@@ -1,14 +1,13 @@
 OAPISCG
 =======
 
-This is the PHP Open API Source Code Generator. It generates DTOs for OpenAPI
+This is the **PHP Open API Source Code Generator**. It generates DTOs for OpenAPI
 specs.
 
-- Generate all or a subset of DTOs and 
-- Selectively generate DTOs from an OAPI spec.
-- Fully typed DTOs.
-- Generates classes for array shapes up until `--inline-level` is reached and
-  will generate an `array-shape` phpdoc type after that.
+- Generate all or a subset of DTOs for an Open API specification.
+- All the types.
+- Generates classes sub-objects up until `--inline-level` is reached and
+  it will then generate an `array-shape` phpdoc type after that.
 
 Why
 ---

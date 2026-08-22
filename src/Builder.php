@@ -223,6 +223,10 @@ final class Builder
         $type = $this->buildPhpType($schemaName, $path);
 
         if ($type instanceof ClassType) {
+            $this->ensureClassIsBuilt(
+                $this->className($schemaName),
+                $this->buildShapeOrClass($this->finder->find($schemaName), [], true)
+            );
             return new ClassType($this->className($schemaName));
         }
 
@@ -237,6 +241,9 @@ final class Builder
 
     private function className(string $name): FullyQualifiedName
     {
+        if (strtolower($name) === 'match') {
+            $name = $name . '_';
+        }
         return FullyQualifiedName::fromStrings(
             $this->namespace ?? '',
             $name
