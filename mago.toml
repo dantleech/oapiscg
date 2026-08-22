@@ -28,6 +28,7 @@ halstead = { enabled = false }
 kan-defect = { enabled = false }
 cyclomatic-complexity = { enabled = false }
 no-boolean-flag-parameter = { enabled = false }
+excessive-parameter-list = { enabled = false }
 
 [analyzer]
 plugins = []
