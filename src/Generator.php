@@ -28,16 +28,6 @@ final class Generator
         ?ModelVisitor $visitor = null,
     ): self
     {
-        if (file_exists($openApiUri)) {
-            $openApiUri = realpath($openApiUri);
-            if (false === $openApiUri) {
-                throw new \RuntimeException(sprintf(
-                    'Could not get realpath for "%s"',
-                    $openApiUri
-                ));
-            }
-        }
-
         if (substr($outputPath, 0, 1) !== '/') {
             $cwd = getcwd();
             if (false === $cwd) {

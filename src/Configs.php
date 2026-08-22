@@ -37,6 +37,7 @@ final class Configs implements Countable
     {
         return $this->configs[$name] ?? throw new \RuntimeException(sprintf(
             'No configuration exists for "%s", known configurations: "%s"',
+            $name,
             implode('", "', array_keys($this->configs))
         ));
     }

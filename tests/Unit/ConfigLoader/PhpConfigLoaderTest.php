@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace DTL\OapiScg\Tests\Unit;
+namespace DTL\OapiScg\Tests\Unit\ConfigLoader;
 
 use DTL\OapiScg\ConfigLoader\PhpConfigLoader;
 use DTL\OapiScg\Tests\TestCase;

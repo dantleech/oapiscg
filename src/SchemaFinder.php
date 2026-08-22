@@ -23,19 +23,26 @@ final class SchemaFinder
 
     public static function fromJsonSpec(string $path): self
     {
-        if (!file_exists($path)) {
+        if (
+            substr($path, 0, 5) !== 'http:' && 
+            substr($path, 0, 6) !== 'https:' && 
+            !file_exists($path)
+        ) {
             throw new \RuntimeException(sprintf(
                 'No file exists at: %s',
                 $path
             ));
         }
+
         $api = Reader::readFromJsonFile($path, resolveReferences: 'inline');
+
         if (!$api instanceof OpenApi) {
             throw new \RuntimeException(sprintf(
                 'Expected %s got %s',
                 $api::class, get_debug_type($api)
             ));
         }
+
         return new self($api);
     }
 
