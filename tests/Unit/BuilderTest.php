@@ -582,5 +582,27 @@ final class BuilderTest extends TestCase
             0,
             'Name\\Space',
         ];
+
+        yield 'with PHP keyword as class name' => [
+            [
+                'Match' => [
+                    'required' => [
+                        'profile',
+                        'user',
+                    ],
+                    'type' => 'object',
+                    'properties' => [
+                        'profile' => [
+                            'type' => 'string',
+                        ],
+                    ],
+                ],
+            ],
+            static function (Builder $builder) {
+                $models = $builder->generate();
+                $model = $models->get('Match_');
+                self::assertEquals('Match_', $model->name->toString());
+            },
+        ];
     }
 }
