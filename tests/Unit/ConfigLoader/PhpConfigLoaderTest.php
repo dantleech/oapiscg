@@ -30,7 +30,7 @@ final class PhpConfigLoaderTest extends TestCase
                 outPath: 'out/path',
                 namespace: 'To\\Namespace',
                 components: ['Component1'],
-                visitors: [
+                modelVisitors: [
                     function (ClassModel $model) {
                     }
                 ],

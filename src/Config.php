@@ -6,12 +6,14 @@ declare(strict_types=1);
 namespace DTL\OapiScg;
 
 use DTL\OapiScg\Model\ClassModel;
+use PhpParser\Node;
 
 final class Config
 {
     /**
      * @param list<string> $components
-     * @param list<callable(ClassModel):void> $visitors
+     * @param list<callable(ClassModel):void> $modelVisitors
+     * @param list<callable(Node):void> $astVisitors
      */
     public function __construct(
         public string $specPath,
@@ -19,7 +21,8 @@ final class Config
         public string $namespace = '',
         public array $components = [],
         public int $inlineLevel = 2,
-        public array $visitors = [],
+        public array $modelVisitors = [],
+        public array $astVisitors = [],
     )
     {
     }

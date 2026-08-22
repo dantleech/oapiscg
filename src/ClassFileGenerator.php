@@ -10,13 +10,18 @@ use DTL\OapiScg\Model\ClassModel;
 use DTL\OapiScg\Model\PropertyModel;
 
 use PhpParser\Builder;
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Namespace_;
 
 final class ClassFileGenerator
 {
-    public function __construct(private string $namespacePrefix = '')
+    /**
+     * @param list<Closure(Node):(null|int|Node|Node[])> $astVisitors
+     */
+    public function __construct(private string $namespacePrefix = '', private array $astVisitors = [])
     {
     }
 
@@ -27,6 +32,12 @@ final class ClassFileGenerator
             $stmts[] = new Namespace_(new Name($model->name->namespace()));
         }
         $stmts[] = $this->generateClass($model);
+
+        $nodeTraverser = new NodeTraverser();
+        foreach ($this->astVisitors as $astVisitor) {
+            $nodeTraverser->addVisitor(new AstVisitor($astVisitor));
+        }
+        $nodeTraverser->traverse($stmts);
 
 
         return new SourceFile($this->resolveRelativePath($model), $stmts);

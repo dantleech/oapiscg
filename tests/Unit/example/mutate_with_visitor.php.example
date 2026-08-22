@@ -1,0 +1,6 @@
+final class Baz extends Foobar
+{
+    function __construct()
+    {
+    }
+}

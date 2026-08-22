@@ -15,7 +15,7 @@ final class Generator
         private Builder $builder,
         private ClassFileGenerator $generator,
         private Dumper $dumper,
-        private ModelVisitor $visitor,
+        private NodeMutator $visitor,
     )
     {
     }
@@ -25,7 +25,7 @@ final class Generator
         string $outputPath,
         string $namespace = '',
         int $inlineLevel = 2,
-        ?ModelVisitor $visitor = null,
+        ?NodeMutator $visitor = null,
     ): self
     {
         if (substr($outputPath, 0, 1) !== '/') {
@@ -46,7 +46,7 @@ final class Generator
         $generator = new ClassFileGenerator(namespacePrefix: $namespace);
         $dumper = new Dumper(new Standard(), $outputPath);
 
-        return new self($builder, $generator, $dumper, $visitor ?? new ModelVisitor([]));
+        return new self($builder, $generator, $dumper, $visitor ?? new NodeMutator([]));
     }
 
     /**

@@ -32,7 +32,7 @@ final class ConfigLoaderTest extends TestCase
                 outPath: 'out/path',
                 namespace: 'To\\Namespace',
                 components: ['Component1'],
-                visitors: [
+                astVisitors: [
                     function (ClassModel $model) {
                     }
                 ],

@@ -9,7 +9,7 @@ namespace DTL\OapiScg\Console;
 use DTL\OapiScg\ConfigLoader;
 
 use DTL\OapiScg\Generator;
-use DTL\OapiScg\ModelVisitor;
+use DTL\OapiScg\NodeMutator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -45,7 +45,7 @@ final class GenerateCommand extends Command
             $config->outPath,
             $config->namespace,
             $config->inlineLevel,
-            new ModelVisitor($config->visitors),
+            new NodeMutator($config->modelVisitors),
         );
 
         $output->writeln(sprintf('Writing to directory: %s', $config->outPath));

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace DTL\OapiScg\Tests\Unit;
 
 use DTL\OapiScg\ClassFileGenerator;
+use DTL\OapiScg\Generate\SourceFile;
 use DTL\OapiScg\Model\ClassModel;
 use DTL\OapiScg\Model\FullyQualifiedName;
 use DTL\OapiScg\Model\PropertyModel;
@@ -16,6 +17,9 @@ use DTL\OapiScg\Model\Value;
 use Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use PhpParser\Node;
+use PhpParser\Node\Name;
+use PhpParser\Node\Stmt\Class_;
 use PhpParser\PrettyPrinter\Standard;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -28,29 +32,42 @@ final class ClassFileGeneratorTest extends TestCase
         static::assertSame('Foobar/Barfoo', $file->name);
 
         $model = new ClassModel(FullyQualifiedName::fromString('Foo\\Bar\\Baz'), []);
-        $file = (new ClassFileGenerator(namespacePrefix: 'Foo'))->generate($model);
+
+        $file = (new ClassFileGenerator(
+            namespacePrefix: 'Foo',
+            astVisitors: [],
+        ))->generate($model);
+
         static::assertSame('Bar/Baz', $file->name);
+    }
+
+    public function testMutateWithVisitor(): void
+    {
+        $model = new ClassModel(FullyQualifiedName::fromString('Baz'), []);
+
+        $file = (new ClassFileGenerator(
+            astVisitors: [
+                function (Node $node) {
+                    if (!$node instanceof Class_) {
+                        return null;
+                    }
+
+                    $node->extends = new Name('Foobar');
+                    return $node;
+                }
+            ],
+        ))->generate($model);
+
+        $this->checkSnapshot('mutate_with_visitor', $file);
     }
 
     #[DataProvider('provideGenerate')]
     public function testGenerate(ClassModel $model):  void
     {
-        $fs = new Filesystem();
         $file = (new ClassFileGenerator())->generate($model);
 
-        $printer = new Standard([]);
-
-        $name = sprintf('%s/example/%s.php.example', __DIR__, str_replace('\\', '/', $model->name->toString()));
-        $printed = $printer->prettyPrint($file->stmts);
-
-        if (!file_exists($name)) {
-            $fs->dumpFile($name, $printed);
-            static::markTestSkipped('Snapshot generated');
-        }
-
-        $expected = (string)file_get_contents($name);
-
-        static::assertEquals($expected, $printed);
+        $exampleName = str_replace('\\', '/', $model->name->toString());
+        self::checkSnapshot($exampleName, $file);
     }
 
     public static function provideGenerate(): Generator
@@ -95,5 +112,23 @@ final class ClassFileGeneratorTest extends TestCase
                 'one' => new PropertyModel('one', new StringType(), description: 'this is a thing'),
             ], description: 'This is a class'),
         ];
+    }
+
+    private static function checkSnapshot(string $exampleName, SourceFile $file): void
+    {
+        $fs = new Filesystem();
+        $name = sprintf('%s/example/%s.php.example', __DIR__, $exampleName);
+        $printer = new Standard([]);
+
+        $printed = $printer->prettyPrint($file->stmts);
+        
+        if (!file_exists($name)) {
+            $fs->dumpFile($name, $printed);
+            static::markTestSkipped('Snapshot generated');
+        }
+        
+        $expected = (string)file_get_contents($name);
+        
+        static::assertEquals($expected, $printed);
     }
 }
