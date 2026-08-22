@@ -5,12 +5,10 @@ declare(strict_types=1);
 
 namespace DTL\OapiScg\Tests\Unit;
 
-
-use DTL\OapiScg\ConfigLoader;
 use DTL\OapiScg\ConfigLoader\PhpConfigLoader;
 use DTL\OapiScg\Tests\TestCase;
 
-final class ConfigLoaderTest extends TestCase
+final class PhpConfigLoaderTest extends TestCase
 {
     protected function setUp(): void
     {

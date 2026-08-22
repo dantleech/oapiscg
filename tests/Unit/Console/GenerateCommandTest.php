@@ -5,12 +5,17 @@ declare(strict_types=1);
 
 namespace DTL\OapiScg\Tests\Unit\Console;
 
+use DTL\OapiScg\Config;
+use DTL\OapiScg\ConfigLoader\InMemoryConfigLoader;
+use DTL\OapiScg\Configs;
 use DTL\OapiScg\Console\GenerateCommand;
 use DTL\OapiScg\Tests\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class GenerateCommandTest extends TestCase
 {
+    const EXAMPLE_NAME = 'config';
+
     protected function setUp(): void
     {
         $this->workspace()->reset();
@@ -18,22 +23,26 @@ final class GenerateCommandTest extends TestCase
 
     public function testGenerate(): void
     {
-        $tester = $this->createTester();
+        $tester = $this->createTester(new Config(
+            specPath: __DIR__ . '/petstore-expanded.json',
+            outPath: $this->workspace()->path()
+        ));
         $tester->execute([
-            'spec-path' => __DIR__ . '/petstore-expanded.json',
-            'out-path' => $this->workspace()->path()
+            'name' => self::EXAMPLE_NAME,
         ]);
 
         static::assertTrue($this->workspace()->exists('NewPet.php'));
     }
 
-    public function testGenerateInNamespace(): void
+    public function testInNamespace(): void
     {
-        $tester = $this->createTester();
+        $tester = $this->createTester(new Config(
+            specPath: __DIR__ . '/petstore-expanded.json',
+            outPath: $this->workspace()->path(),
+            namespace: 'Acme\\Balls',
+        ));
         $tester->execute([
-            'spec-path' => __DIR__ . '/petstore-expanded.json',
-            'out-path' => $this->workspace()->path(),
-            '--namespace' => 'Acme\\Balls',
+            'name' => self::EXAMPLE_NAME,
         ]);
 
         static::assertTrue($this->workspace()->exists('NewPet/Owner.php'));
@@ -41,22 +50,30 @@ final class GenerateCommandTest extends TestCase
 
     public function testInlineLevel(): void
     {
-        $tester = $this->createTester();
+        $tester = $this->createTester(new Config(
+            specPath: __DIR__ . '/petstore-expanded.json',
+            outPath: $this->workspace()->path(),
+            namespace: 'Acme\\Balls',
+            inlineLevel: 0,
+        ));
         $tester->execute([
-            'spec-path' => __DIR__ . '/petstore-expanded.json',
-            'out-path' => $this->workspace()->path(),
-            '--namespace' => 'Acme\\Balls',
-            '--inline-level' => 0,
+            'name' => self::EXAMPLE_NAME,
         ]);
 
         static::assertTrue($this->workspace()->exists('NewPet.php'));
         static::assertStringContainsString('array{name:?string}', $this->workspace()->getContents('NewPet.php'));
     }
 
-    private function createTester(): CommandTester
+    private function createTester(Config $config): CommandTester
     {
         return new CommandTester(
-            new GenerateCommand()
+            new GenerateCommand(
+                new InMemoryConfigLoader(
+                    Configs::from([
+                        self::EXAMPLE_NAME => $config
+                    ])
+                )
+            )
         );
     }
 }

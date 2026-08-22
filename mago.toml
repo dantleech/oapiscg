@@ -6,7 +6,7 @@ php-version = "8.5.0"
 
 [source]
 workspace = "."
-paths = ["src/", "tests/"]
+paths = ["src/", "tests/", "bin/"]
 includes = ["vendor"]
 excludes = []
 
@@ -24,7 +24,6 @@ integrations = ["phpunit"]
 [linter.rules]
 ambiguous-function-call = { enabled = false }
 literal-named-argument = { enabled = false }
-no-mixed-assignment = { enabled = false }
 halstead = { enabled = false }
 kan-defect = { enabled = false }
 cyclomatic-complexity = { enabled = false }
@@ -32,6 +31,9 @@ no-boolean-flag-parameter = { enabled = false }
 
 [analyzer]
 plugins = []
+ignore = [
+    { code = "mixed-assignment", in = "src/" },
+]
 find-unused-definitions = true
 find-unused-expressions = false
 analyze-dead-code = false

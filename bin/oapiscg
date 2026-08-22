@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use DTL\OapiScg\ConfigLoader\PhpConfigLoader;
 use DTL\OapiScg\Console\GenerateCommand;
 use Symfony\Component\Console\Application;
 
@@ -8,7 +9,11 @@ require __DIR__ . '/../vendor/autoload.php';
 
 ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 
+$cwd = getcwd() ?: throw new \RuntimeException('Could not resolve cwd');
+
 $application = new Application();
-$application->addCommand(new GenerateCommand());
+$application->addCommand(
+    new GenerateCommand(new PhpConfigLoader($cwd))
+);
 $application->setDefaultCommand('generate', true);
 $application->run();
