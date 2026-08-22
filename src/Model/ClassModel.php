@@ -8,10 +8,16 @@ namespace DTL\OapiScg\Model;
 final class ClassModel
 {
     /**
+     * @var array<string,PropertyModel>
+     */
+    public array $properties;
+
+    /**
      * @param array<array-key,PropertyModel> $properties
      */
-    public function __construct(public FullyQualifiedName $name, public array $properties, public ?string $description = null)
+    public function __construct(public FullyQualifiedName $name, array $properties, public ?string $description = null)
     {
+        $this->properties = array_combine(array_map(static fn (PropertyModel $p) => $p->name, $properties), array_values($properties));
     }
 
     public function property(string $name): PropertyModel

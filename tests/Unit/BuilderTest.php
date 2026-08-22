@@ -7,7 +7,7 @@ namespace DTL\OapiScg\Tests\Unit;
 
 use Closure;
 use DTL\OapiScg\Builder;
-use DTL\OapiScg\Model\ClassModels;
+
 use DTL\OapiScg\Model\Type\ClassType;
 use DTL\OapiScg\Model\Type\ShapeType;
 use DTL\OapiScg\Model\Type\StringType;

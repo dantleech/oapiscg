@@ -15,6 +15,7 @@ final class Generator
         private Builder $builder,
         private ClassFileGenerator $generator,
         private Dumper $dumper,
+        private ModelVisitor $visitor,
     )
     {
     }
@@ -24,6 +25,7 @@ final class Generator
         string $outputPath,
         string $namespace = '',
         int $inlineLevel = 2,
+        ?ModelVisitor $visitor = null,
     ): self
     {
         if (file_exists($openApiUri)) {
@@ -54,7 +56,7 @@ final class Generator
         $generator = new ClassFileGenerator(namespacePrefix: $namespace);
         $dumper = new Dumper(new Standard(), $outputPath);
 
-        return new self($builder, $generator, $dumper);
+        return new self($builder, $generator, $dumper, $visitor ?? new ModelVisitor([]));
     }
 
     /**
@@ -64,6 +66,7 @@ final class Generator
     {
         $models = $this->builder->generate(...$names);
         foreach ($models as $model) {
+            $this->visitor->visit($model);
             $file = $this->generator->generate($model);
             yield $this->dumper->dump($file);
         }

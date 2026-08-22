@@ -8,6 +8,7 @@ specs.
 - All the types.
 - Generates classes sub-objects up until `--inline-level` is reached and
   it will then generate an `array-shape` phpdoc type after that.
+- Register callbacks to "fix" models prior to code generation.
 
 Why
 ---

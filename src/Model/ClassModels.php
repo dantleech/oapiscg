@@ -15,7 +15,7 @@ final class ClassModels implements IteratorAggregate
     /**
      * @param array<array-key, ClassModel> $classes
      */
-    private function __construct(private array $classes)
+    private function __construct(public array $classes)
     {
     }
 
