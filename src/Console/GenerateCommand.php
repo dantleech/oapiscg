@@ -21,7 +21,6 @@ final class GenerateCommand extends Command
     const OPT_INLINE_LEVEL = 'inline-level';
     const ARG_COMPONENTS = 'components';
 
-
     public function configure(): void
     {
         $this->setName(self::NAME);
