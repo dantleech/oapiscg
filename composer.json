@@ -23,6 +23,12 @@
             "DTL\\OapiScg\\Tests\\": "tests/"
         }
     },
+    "scripts": {
+        "integrate": [
+            "mago lint --fix -unsafe",
+            "mago analyse --unsafe"
+        ]
+    },
     "authors": [
         {
             "name": "Dan",

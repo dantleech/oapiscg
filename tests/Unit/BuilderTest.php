@@ -20,7 +20,7 @@ final class BuilderTest extends TestCase
 {
     /**
      * @param array<int,mixed> $spec
-     * @param Closure(ClassModels): void $test
+     * @param Closure(Builder): void $test
      */
     #[DataProvider('provideBuildDTO')]
     public function testBuildDTO(array $spec, Closure $test, int $inlineLevel = 0, string $namespace = ''): void
@@ -33,11 +33,11 @@ final class BuilderTest extends TestCase
             ],
         ];
 
-        $models = (new Builder(
+        $models = new Builder(
             SchemaFinder::fromJson((string)json_encode($api)),
             namespace: $namespace,
             inlineLevel: $inlineLevel
-        ));
+        );
 
         $test($models);
     }

@@ -242,7 +242,7 @@ final class Builder
     private function className(string $name): FullyQualifiedName
     {
         if (strtolower($name) === 'match') {
-            $name = $name . '_';
+            $name .= '_';
         }
         return FullyQualifiedName::fromStrings(
             $this->namespace ?? '',
@@ -280,8 +280,14 @@ final class Builder
         return new ClassType($name);
     }
 
-    private function ensureClassIsBuilt(FullyQualifiedName $className, ShapeType $type): void
+    private function ensureClassIsBuilt(FullyQualifiedName $className, PhpType $type): void
     {
+        if (!$type instanceof ShapeType) {
+            throw new \RuntimeException(sprintf(
+                'Only shape types can be built as classes, got: %s',
+                $type::class,
+            ));
+        }
         if (!array_key_exists($className->toString(), $this->pending)) {
             $this->pending[$className->toString()] = $type;
         }
