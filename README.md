@@ -4,22 +4,19 @@ OAPISCG
 This is the **PHP Open API Source Code Generator**. It generates DTOs for OpenAPI
 specs.
 
-- Generate all or a subset of DTOs for an Open API specification.
-- All the types.
-- Generates classes sub-objects up until `--inline-level` is reached and
-  it will then generate an `array-shape` phpdoc type after that.
-- Register callbacks to "fix" models prior to code generation.
+- Generate all or a subset of DTOs for based on the components of an Open API specification.
+- Generates sub-classes up until `--inline-level` is reached and array-shapes
+  after that.
+- Customize the _models_: Fix errors in the specification.
+- Customize the _ast_: Adapt the DTOs to your framework or serialization
+  preferences.
 
-Why
----
+Why Would You Do This?
+----------------------
 
-There are many ways to generate code from API specs, why did you create this?
-
-🤷
-
-- Because I don't want to drop 5k lines of API code into a repository when
-  only a small subset of that code is going to be used.
-- I want to build my own API clients, I don't want to code DTOs.
+- I want strongly typed API clients.
+- I _don't_ want to manually write DTOs.
+- I _do_ want to write my own API clients.
 
 Usage
 -----
