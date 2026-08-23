@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+
 namespace DTL\OapiScg;
 
-use Closure;
+
 use DTL\OapiScg\Model\ClassModel;
 
 final class ModelVisitors

@@ -33,7 +33,7 @@ final class PhpConfigLoader implements ConfigLoader
         if (!$configs instanceof Configs) {
             throw new \RuntimeException(sprintf(
                 'The config file "%s" must return an instanceof %s but it returned %s',
-                Configs::class, get_debug_type($configs)
+                $path, Configs::class, get_debug_type($configs)
             ));
         }
 

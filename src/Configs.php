@@ -49,7 +49,7 @@ final class Configs implements Countable
 
     public function first(): Config
     {
-        if (empty($this->configs)) {
+        if ([] === $this->configs) {
             throw new \RuntimeException(
                 'Cannot get first config when no configs have been registerd'
             );

@@ -13,7 +13,7 @@ final class Config
     /**
      * @param list<string> $components
      * @param list<callable(ClassModel):void> $modelVisitors
-     * @param list<callable(Node):void> $astVisitors
+     * @param list<Closure(Node):(null|int|Node|Node[])> $astVisitors
      */
     public function __construct(
         public string $specPath,

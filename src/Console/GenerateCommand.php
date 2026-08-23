@@ -9,7 +9,7 @@ namespace DTL\OapiScg\Console;
 use DTL\OapiScg\ConfigLoader;
 
 use DTL\OapiScg\Generator;
-use DTL\OapiScg\ModelVisitors;
+
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

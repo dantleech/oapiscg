@@ -47,7 +47,7 @@ final class ClassFileGeneratorTest extends TestCase
 
         $file = (new ClassFileGenerator(
             astVisitors: [
-                function (Node $node) {
+                static function (Node $node) {
                     if (!$node instanceof Class_) {
                         return null;
                     }
