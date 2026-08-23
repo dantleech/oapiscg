@@ -11,7 +11,8 @@
         "phpunit/phpunit": "^13.3",
         "carthage-software/mago": "^1.46",
         "symfony/var-dumper": "^8.1",
-        "symfony/filesystem": "^8.1"
+        "symfony/filesystem": "^8.1",
+        "dantleech/docbot": "^0.3.0"
     },
     "autoload": {
         "psr-4": {
