@@ -5,10 +5,10 @@ namespace DTL\OapiScg;
 use Closure;
 use DTL\OapiScg\Model\ClassModel;
 
-final class NodeMutator
+final class ModelVisitors
 {
     /**
-     * @param list<Closure(CLassModel):void> $modelVisitors
+     * @param list<callable(CLassModel):void> $modelVisitors
      */
     public function __construct(private array $modelVisitors = [])
     {

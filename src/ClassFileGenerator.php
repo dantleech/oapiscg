@@ -56,8 +56,8 @@ final class ClassFileGenerator
             $class->setDocComment(implode("\n", $comment));
         }
 
-        //$class->extend('\\Spatie\\LaravelData\\Data');
         $ctor = new Builder\Method('__construct');
+        $ctor->makePublic();
 
         foreach ($this->orderProperties($model->properties) as $property) {
             $parameter = new Builder\Param($property->name);

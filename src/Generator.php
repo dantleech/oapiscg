@@ -15,38 +15,37 @@ final class Generator
         private Builder $builder,
         private ClassFileGenerator $generator,
         private Dumper $dumper,
-        private NodeMutator $visitor,
+        private ModelVisitors $visitor,
     )
     {
     }
 
-    public static function new(
-        string $openApiUri,
-        string $outputPath,
-        string $namespace = '',
-        int $inlineLevel = 2,
-        ?NodeMutator $visitor = null,
-    ): self
+    public static function new(Config $config): self
     {
-        if (substr($outputPath, 0, 1) !== '/') {
+        if (substr($config->outPath, 0, 1) !== '/') {
             $cwd = getcwd();
             if (false === $cwd) {
                 throw new \RuntimeException('Could not resolve CWD');
             }
-            $outputPath = $cwd . '/' . $outputPath;
+            $outputPath = $cwd . '/' . $config->outPath;
         }
 
-        $finder = SchemaFinder::fromJsonSpec($openApiUri);
+        $finder = SchemaFinder::fromJsonSpec($config->specPath);
 
         $builder = new Builder(
             $finder,
-            namespace: $namespace,
-            inlineLevel: $inlineLevel
+            namespace: $config->namespace,
+            inlineLevel: $config->inlineLevel
         );
-        $generator = new ClassFileGenerator(namespacePrefix: $namespace);
-        $dumper = new Dumper(new Standard(), $outputPath);
+        $generator = new ClassFileGenerator(namespacePrefix: $config->namespace, astVisitors: $config->astVisitors);
+        $dumper = new Dumper(new Standard(), $config->outPath);
 
-        return new self($builder, $generator, $dumper, $visitor ?? new NodeMutator([]));
+        return new self(
+            $builder,
+            $generator,
+            $dumper,
+            new ModelVisitors($config->modelVisitors)
+        );
     }
 
     /**
