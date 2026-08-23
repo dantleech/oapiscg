@@ -1,6 +1,6 @@
 final class FoobarWithDefault
 {
-    function __construct(public string $prop1 = 'hello!')
+    public function __construct(public string $prop1 = 'hello!')
     {
     }
 }

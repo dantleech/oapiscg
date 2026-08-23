@@ -1,6 +1,6 @@
 final class WithRequiredParamsBeforeOptional
 {
-    function __construct(public string $two, public string $four, public string $three = '', public string $one = '')
+    public function __construct(public string $two, public string $four, public string $three = '', public string $one = '')
     {
     }
 }
