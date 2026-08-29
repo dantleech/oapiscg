@@ -5,10 +5,12 @@ declare(strict_types=1);
 
 namespace DTL\OapiScg\Model;
 
+use Closure;
+
 final class FullyQualifiedName
 {
     /**
-     * @param non-empty-list<string> $parts
+     * @param non-empty-list<non-empty-string> $parts
      */
     public function __construct(private array $parts)
     {
@@ -70,5 +72,16 @@ final class FullyQualifiedName
         return self::fromString(
             $name
         );
+    }
+
+    /**
+     * @param Closure(non-empty-string):non-empty-string $closure
+     */
+    public function map(Closure $closure): self
+    {
+        return self::fromStrings(...array_map(
+            $closure,
+            $this->parts
+        ));
     }
 }

@@ -241,12 +241,16 @@ final class Builder
 
     private function className(string $name): FullyQualifiedName
     {
-        if (PhpKeywords::isKeyword($name)) {
-            $name .= '_';
-        }
+        $name = FullyQualifiedName::fromStrings($this->namespace ?? '', $name);
 
-        return FullyQualifiedName::fromStrings($this->namespace ?? '', $name);
+        return $name->map(function (string $segment) {
+            if (PhpKeywords::isKeyword($segment)) {
+                return $segment.'_';
+            }
+            return $segment;
+        });
     }
+
     /**
      * @param list<string> $path
      */

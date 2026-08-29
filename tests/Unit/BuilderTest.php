@@ -587,13 +587,13 @@ final class BuilderTest extends TestCase
             [
                 'Match' => [
                     'required' => [
-                        'profile',
-                        'user',
+                        'match',
                     ],
                     'type' => 'object',
                     'properties' => [
-                        'profile' => [
-                            'type' => 'string',
+                        'match' => [
+                            'type' => 'object',
+                            'properties' => [],
                         ],
                     ],
                 ],
@@ -602,7 +602,9 @@ final class BuilderTest extends TestCase
                 $models = $builder->generate();
                 $model = $models->get('Match_');
                 self::assertEquals('Match_', $model->name->toString());
+                $models->get('Match_\\Match_');
             },
+            2,
         ];
     }
 }
