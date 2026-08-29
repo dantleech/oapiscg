@@ -230,6 +230,31 @@ final class BuilderTest extends TestCase
             }
         ];
 
+        yield 'nested object reference' => [
+            [
+                'Foo' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'subobj' => [
+                            '$ref' => '#/components/schemas/Bar',
+                        ],
+                    ],
+                ],
+                'Bar' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'bar' => ['type' => 'string'],
+                    ],
+                ],
+            ], 
+            static function (Builder $builder) {
+                $models = $builder->generate();
+                self::assertCount(2, $models);
+                self::assertEquals('Foo', $models->get('Foo')->name->toString());
+            },
+            2
+        ];
+
         yield 'class-level allOf with reference' => [
             [
                 'Foo' => [

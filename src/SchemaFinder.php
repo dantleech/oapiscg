@@ -78,4 +78,9 @@ final class SchemaFinder
             array_keys($this->openApi?->components->schemas ?? [])
         );
     }
+
+    public function has(string $name): bool
+    {
+        return in_array($name, $this->names(), true);
+    }
 }

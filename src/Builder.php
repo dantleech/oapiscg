@@ -220,12 +220,12 @@ final class Builder
 
         $schemaName = (string)array_pop($refPath);
 
-        $type = $this->buildPhpType($schemaName, $path);
+        $type = $this->buildPhpType($schemaName, [$schemaName]);
 
         if ($type instanceof ClassType) {
             $this->ensureClassIsBuilt(
                 $this->className($schemaName),
-                $this->buildShapeOrClass($this->finder->find($schemaName), [], true)
+                $this->buildShapeOrClass($this->finder->find($schemaName), [], true),
             );
             return new ClassType($this->className($schemaName));
         }
@@ -241,9 +241,10 @@ final class Builder
 
     private function className(string $name): FullyQualifiedName
     {
-        $name = FullyQualifiedName::fromStrings($this->namespace ?? '', $name);
-
-        return $name->map(function (string $segment) {
+        return FullyQualifiedName::fromStrings(
+            $this->namespace ?? '',
+            $name
+        )->map(static function (string $segment) {
             if (PhpKeywords::isKeyword($segment)) {
                 return $segment.'_';
             }
@@ -259,7 +260,7 @@ final class Builder
         $properties = [];
         foreach ($schema->properties as $name => $property) {
             $newPath = $path;   
-            $newPath[] = (string)$name;
+            $newPath[] = ucfirst((string)$name);
 
             $phpType = $this->buildPhpType($property, $newPath);
 
@@ -277,7 +278,7 @@ final class Builder
             return $type;
         }
 
-        $name = $this->className(implode('\\', array_map('ucfirst', $path)));
+        $name = $this->className(implode('\\', $path));
         $this->ensureClassIsBuilt($name, $type);
         return new ClassType($name);
     }
@@ -290,6 +291,7 @@ final class Builder
                 $type::class,
             ));
         }
+
         if (!array_key_exists($className->toString(), $this->pending)) {
             $this->pending[$className->toString()] = $type;
         }

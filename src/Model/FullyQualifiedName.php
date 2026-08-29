@@ -10,7 +10,7 @@ use Closure;
 final class FullyQualifiedName
 {
     /**
-     * @param non-empty-list<non-empty-string> $parts
+     * @param non-empty-list<string> $parts
      */
     public function __construct(private array $parts)
     {
@@ -75,7 +75,7 @@ final class FullyQualifiedName
     }
 
     /**
-     * @param Closure(non-empty-string):non-empty-string $closure
+     * @param Closure(string):string $closure
      */
     public function map(Closure $closure): self
     {
