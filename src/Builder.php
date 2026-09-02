@@ -265,6 +265,11 @@ final class Builder
 
         }
 
+        if (!$schema->properties) {
+            // if there is no structure just return a mixed array
+            return new DictType(new MixedType());
+        }
+
         $properties = [];
         foreach ($schema->properties as $name => $property) {
             $newPath = $path;   

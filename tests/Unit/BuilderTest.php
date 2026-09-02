@@ -314,6 +314,7 @@ final class BuilderTest extends TestCase
                 ],
                 'Baz' => [
                     'type' => 'object',
+                    'properties' => ['foo' => ['type' => 'string']],
                 ],
             ], 
             static function (Builder $builder) {
@@ -349,6 +350,9 @@ final class BuilderTest extends TestCase
                 ],
                 'Boo' => [
                     'type' => 'object',
+                    'properties' => [
+                        'foo' => ['type' => 'string'],
+                    ],
                 ],
             ], 
             static function (Builder $builder) {
@@ -618,7 +622,9 @@ final class BuilderTest extends TestCase
                     'properties' => [
                         'match' => [
                             'type' => 'object',
-                            'properties' => [],
+                            'properties' => [
+                                'foo' => ['type' => 'string'],
+                            ],
                         ],
                     ],
                 ],
@@ -676,13 +682,27 @@ final class BuilderTest extends TestCase
                         ]
                     ],
                 ],
-                'Baz' => [
-                    'type' => 'object',
-                ],
             ], 
             static function (Builder $builder) {
                 $models = $builder->generate();
                 self::assertEquals('?array<string,list<string>>', $models->get('Bar')->property('errors')->phpType->phpDocString());
+            },
+            10
+        ];
+        yield 'unstructured object' => [
+            [
+                'Bar' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'errors' => [
+                            'type' => ['object'],
+                        ]
+                    ],
+                ],
+            ], 
+            static function (Builder $builder) {
+                $models = $builder->generate();
+                self::assertEquals('?array<string,mixed>', $models->get('Bar')->property('errors')->phpType->phpDocString());
             },
             10
         ];
