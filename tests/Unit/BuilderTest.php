@@ -631,5 +631,60 @@ final class BuilderTest extends TestCase
             },
             2,
         ];
+
+        yield 'dictionary' => [
+            [
+                'Bar' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'errors' => [
+                            'type' => 'object',
+                            'additionalProperties' =>[
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'string',
+                                ],
+
+                            ],
+                        ]
+                    ],
+                ],
+                'Baz' => [
+                    'type' => 'object',
+                ],
+            ], 
+            static function (Builder $builder) {
+                $models = $builder->generate();
+                self::assertEquals('?array<string,list<string>>', $models->get('Bar')->property('errors')->phpType->phpDocString());
+            },
+            10
+        ];
+        yield 'dictionary union' => [
+            [
+                'Bar' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'errors' => [
+                            'type' => ['object','null'],
+                            'additionalProperties' =>[
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'string',
+                                ],
+
+                            ],
+                        ]
+                    ],
+                ],
+                'Baz' => [
+                    'type' => 'object',
+                ],
+            ], 
+            static function (Builder $builder) {
+                $models = $builder->generate();
+                self::assertEquals('?array<string,list<string>>', $models->get('Bar')->property('errors')->phpType->phpDocString());
+            },
+            10
+        ];
     }
 }

@@ -12,6 +12,7 @@ use DTL\OapiScg\Model\PhpType;
 use DTL\OapiScg\Model\PropertyModel;
 use DTL\OapiScg\Model\Type\BooleanType;
 use DTL\OapiScg\Model\Type\ClassType;
+use DTL\OapiScg\Model\Type\DictType;
 use DTL\OapiScg\Model\Type\FloatType;
 use DTL\OapiScg\Model\Type\IntegerType;
 use DTL\OapiScg\Model\Type\ListType;
@@ -153,10 +154,11 @@ final class Builder
                             );
                         }
 
-                        $schema = new Schema([]);
-                        $schema->type = $string;
+                        $newSchema = new Schema([]);
+                        $newSchema->type = $string;
+                        $newSchema->additionalProperties = $schema->additionalProperties;
 
-                        return $this->buildPhpType($schema, $path);
+                        return $this->buildPhpType($newSchema, $path);
                     },
                     // @mago-expect analyzer:no-value
                     $schema->type
@@ -257,6 +259,12 @@ final class Builder
      */
     private function buildShapeOrClass(Schema $schema, array $path = [], bool $forceShape = false): PhpType
     {
+        if ($schema->additionalProperties instanceof Schema) {
+            // dictionary
+            return new DictType($this->buildPhpType($schema->additionalProperties, $path));
+
+        }
+
         $properties = [];
         foreach ($schema->properties as $name => $property) {
             $newPath = $path;   
