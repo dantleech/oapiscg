@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace DTL\OapiScg\Tests\Unit;
 
 
-use DTL\OapiScg\ConfigLoader;
 use DTL\OapiScg\ConfigLoader\PhpConfigLoader;
 use DTL\OapiScg\Tests\TestCase;
 
@@ -24,7 +23,7 @@ final class ConfigLoaderTest extends TestCase
 
         use DTL\OapiScg\Configs;
         use DTL\OapiScg\Config;
-        use DTL\OapiScg\Model\ClassModel;
+        use DTL\OapiScg\Model\ClassModels;
 
         return Configs::from([
             'hello' => new Config(
@@ -33,7 +32,7 @@ final class ConfigLoaderTest extends TestCase
                 namespace: 'To\\Namespace',
                 components: ['Component1'],
                 astVisitors: [
-                    function (ClassModel $model) {
+                    function (ClassModels $model) {
                     }
                 ],
             ),

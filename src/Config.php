@@ -5,14 +5,14 @@ declare(strict_types=1);
 
 namespace DTL\OapiScg;
 
-use DTL\OapiScg\Model\ClassModel;
+use DTL\OapiScg\Model\ClassModels;
 use PhpParser\Node;
 
 final class Config
 {
     /**
      * @param list<string> $components
-     * @param list<callable(ClassModel):void> $modelVisitors
+     * @param list<callable(ClassModels):void> $modelVisitors
      * @param list<Closure(Node):(null|int|Node|Node[])> $astVisitors
      */
     public function __construct(

@@ -54,8 +54,8 @@ final class Generator
     public function generate(string ...$names): PhpGenerator
     {
         $models = $this->builder->generate(...$names);
+        $this->visitor->visit($models);
         foreach ($models as $model) {
-            $this->visitor->visit($model);
             $file = $this->generator->generate($model);
             yield $this->dumper->dump($file);
         }
