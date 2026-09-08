@@ -6,7 +6,9 @@ declare(strict_types=1);
 namespace DTL\OapiScg\Tests\Unit;
 
 
+use DTL\OapiScg\ConfigLoader;
 use DTL\OapiScg\ConfigLoader\PhpConfigLoader;
+use DTL\OapiScg\Model\ClassModels;
 use DTL\OapiScg\Tests\TestCase;
 
 final class ConfigLoaderTest extends TestCase
@@ -34,6 +36,9 @@ final class ConfigLoaderTest extends TestCase
                 astVisitors: [
                     function (ClassModels $model) {
                     }
+                ],
+                unions: [
+                    '^pattern' => 'Name',
                 ],
             ),
         ]);

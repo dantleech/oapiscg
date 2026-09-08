@@ -38,10 +38,14 @@ final class Builder
      */
     private array $resolved = [];
 
+    /**
+     * @param array<string,string> $unions
+     */
     public function __construct(
         private SchemaFinder $finder,
         private ?string $namespace = null,
         private int $inlineLevel = 0,
+        private array $unions = [],
     )
     {
     }
@@ -243,6 +247,8 @@ final class Builder
 
     private function className(string $name): FullyQualifiedName
     {
+        $name = $this->resolveUnionName($name);
+
         return FullyQualifiedName::fromStrings(
             $this->namespace ?? '',
             $name
@@ -308,5 +314,16 @@ final class Builder
         if (!array_key_exists($className->toString(), $this->pending)) {
             $this->pending[$className->toString()] = $type;
         }
+    }
+
+    private function resolveUnionName(string $name): string
+    {
+        foreach ($this->unions as $pattern => $unionType) {
+            if (preg_match('{' . $pattern . '}', $name)) {
+                return $unionType;
+            }
+        }
+
+        return $name;
     }
 }

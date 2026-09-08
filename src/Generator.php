@@ -35,7 +35,8 @@ final class Generator
         $builder = new Builder(
             $finder,
             namespace: $config->namespace,
-            inlineLevel: $config->inlineLevel
+            inlineLevel: $config->inlineLevel,
+            unions: $config->unions,
         );
         $generator = new ClassFileGenerator(namespacePrefix: $config->namespace, astVisitors: $config->astVisitors);
         $dumper = new Dumper(new Standard(), $config->outPath);

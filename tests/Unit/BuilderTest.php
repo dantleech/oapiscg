@@ -18,6 +18,40 @@ use PHPUnit\Framework\TestCase;
 
 final class BuilderTest extends TestCase
 {
+    public function testUnions(): void
+    {
+        $api = [
+            'openapi' => '3.0.0',
+            'info' => [],
+            'components' => [
+                'schemas' => [
+                    'Foo' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'string' => ['type' => 'string'],
+                        ],
+                    ],
+                    'Bar' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'string' => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $models = new Builder(
+            SchemaFinder::fromJson((string)json_encode($api)),
+            namespace: 'Foo',
+            unions: [
+                '^(Foo|Bar)$' => 'Baz',
+            ],
+        );
+
+        self::assertEquals('Foo\\Baz', $models->generate()->get('Foo\\Baz')->name->toString());
+        self::assertEquals('?string', $models->generate()->get('Foo\\Baz')->property('string')->phpType->phpDocString());
+    }
     /**
      * @param array<int,mixed> $spec
      * @param Closure(Builder): void $test
