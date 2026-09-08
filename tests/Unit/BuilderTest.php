@@ -49,8 +49,8 @@ final class BuilderTest extends TestCase
             ],
         );
 
-        self::assertEquals('Foo\\Baz', $models->generate()->get('Foo\\Baz')->name->toString());
-        self::assertEquals('?string', $models->generate()->get('Foo\\Baz')->property('string')->phpType->phpDocString());
+        static::assertSame('Foo\\Baz', $models->generate()->get('Foo\\Baz')->name->toString());
+        static::assertSame('?string', $models->generate()->get('Foo\\Baz')->property('string')->phpType->phpDocString());
     }
     /**
      * @param array<int,mixed> $spec
