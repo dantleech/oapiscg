@@ -28,7 +28,9 @@
     "scripts": {
         "integrate": [
             "mago lint --fix -unsafe",
-            "mago analyse --unsafe"
+            "mago analyse --unsafe",
+            "vendor/bin/phunit",
+            "vendor/bin/docbox execute"
         ]
     },
     "authors": [

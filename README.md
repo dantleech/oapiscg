@@ -113,11 +113,10 @@ Writing to directory: src/PetstoreClient/DTO
 
  144 bytes > NewPet.Owner
  219 bytes > NewPet
- 137 bytes > Owner
  232 bytes > Pet
  150 bytes > Error
 
- Generated 5 classes in 0.0024 seconds 
+ Generated 4 classes in 0.0030 seconds 
 
 
 ```
@@ -195,7 +194,7 @@ Writing to directory: src/PetstoreClient/DTO
 
  245 bytes > NewPet
 
- Generated 1 classes in 0.0021 seconds 
+ Generated 1 classes in 0.0025 seconds 
 
 
 ```
@@ -261,7 +260,7 @@ Writing to directory: src/PetstoreClient/DTO
  144 bytes > NewPet.Owner
  231 bytes > NewPet
 
- Generated 2 classes in 0.0022 seconds 
+ Generated 2 classes in 0.0027 seconds 
 
 
 ```
@@ -321,7 +320,7 @@ Writing to directory: src/PetstoreClient/DTO
  202 bytes > NewPet.Owner
  277 bytes > NewPet
 
- Generated 2 classes in 0.0028 seconds 
+ Generated 2 classes in 0.0027 seconds 
 
 
 ```

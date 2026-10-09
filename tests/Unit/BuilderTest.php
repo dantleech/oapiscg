@@ -740,5 +740,49 @@ final class BuilderTest extends TestCase
             },
             10
         ];
+        yield 'sub-object' => [
+            [
+                'Pet' => [
+                    'allOf' => [
+                        [
+                            '$ref' => '#/components/schemas/NewPet'
+                        ],
+                        [
+                            "type" => "object",
+                            "required" => ["id"],
+                            "properties" => [
+                                "id" => [
+                                    "type" => "integer",
+                                    "format" => "int64"
+                                ]
+                            ]
+                        ]
+                    ],
+                ],
+                'NewPet' => [
+                    'type' => 'object',
+                    'required' => ['name'],
+                    'properties' => [
+                        'name' => [
+                            'type' => 'string',
+                        ],
+                        'owner' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'name' => [
+                                    'type' => 'string',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+                static function (Builder $builder) {
+                    $models = $builder->generate();
+                    self::assertCount(3, $models);
+                    self::assertEquals('?\NewPet\Owner', $models->get('NewPet')->property('owner')->phpType->phpDocString());
+                },
+                10
+            ];
     }
 }
