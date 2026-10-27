@@ -2,8 +2,7 @@ Docbot
 ======
 
 > [!WARNING]
-> This library is experimental and contains bugs. Some bugs are evident in this [scripted](https://github.com/dantleech/docbot) README file.
-> See if you can spot them 🪄
+> This library is experimental and probably contains bugs.
 
 This is the **PHP Open API Source Code Generator**. It generates DTOs for OpenAPI
 specs.
@@ -116,7 +115,7 @@ Writing to directory: src/PetstoreClient/DTO
  232 bytes > Pet
  150 bytes > Error
 
- Generated 4 classes in 0.0030 seconds 
+ Generated 4 classes in 0.0032 seconds 
 
 
 ```
@@ -162,7 +161,7 @@ Writing to directory: src/PetstoreClient/DTO
  144 bytes > NewPet.Owner
  219 bytes > NewPet
 
- Generated 2 classes in 0.0025 seconds 
+ Generated 2 classes in 0.0027 seconds 
 
 
 ```
@@ -194,7 +193,7 @@ Writing to directory: src/PetstoreClient/DTO
 
  245 bytes > NewPet
 
- Generated 1 classes in 0.0025 seconds 
+ Generated 1 classes in 0.0030 seconds 
 
 
 ```
@@ -260,7 +259,7 @@ Writing to directory: src/PetstoreClient/DTO
  144 bytes > NewPet.Owner
  231 bytes > NewPet
 
- Generated 2 classes in 0.0027 seconds 
+ Generated 2 classes in 0.0037 seconds 
 
 
 ```
