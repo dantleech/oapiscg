@@ -1,6 +1,6 @@
 # this is a WIP flake for development and experimentation only
 {
-  description = "phpactor/phpactor";
+  description = "dtlsoft/oapiscg";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
