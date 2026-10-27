@@ -21,7 +21,7 @@ final class Dumper
         if (!file_exists(dirname($path))) {
             if (false === mkdir(dirname($path), 0o744, true)) {
                 throw new \RuntimeException(sprintf(
-                    'Could not created directory: %s',
+                    'Could not create directory: %s',
                     dirname($path)
                 ));
             }

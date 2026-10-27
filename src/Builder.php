@@ -231,7 +231,7 @@ final class Builder
         if ($type instanceof ClassType) {
             $this->ensureClassIsBuilt(
                 $this->className($schemaName),
-                $this->buildShapeOrClass($this->finder->find($schemaName), [], true),
+                $this->buildShapeOrClass($this->finder->find($schemaName), [$schemaName], true),
             );
             return new ClassType($this->className($schemaName));
         }

@@ -10,8 +10,7 @@ use DTL\Docbot\Extension\Core\Block\TextBlock;
 return Article::create('../README', 'Docbot', [
     new TextBlock(<<<'MD'
         > [!WARNING]
-        > This library is experimental and contains bugs. Some bugs are evident in this [scripted](https://github.com/dantleech/docbot) README file.
-        > See if you can spot them 🪄
+        > This library is experimental and probably contains bugs.
 
         This is the **PHP Open API Source Code Generator**. It generates DTOs for OpenAPI
         specs.
